@@ -1,0 +1,56 @@
+/* ECON3111 Lab: shared styles. Palette matches the 2027 slides. */
+:root{
+  --ink:#121417; --blue:#1C4F9C; --amber:#E8A317; --teal:#0F766E; --brick:#B42318;
+  --leaf:#2E7D32; --plum:#5B3E96; --paper:#F6F5F1; --mist:#E9ECF1; --slate:#5F6B7A;
+  --bg:#ffffff; --fg:#121417; --card:#ffffff; --line:#d9dde3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0f1114; --fg:#eceef1; --card:#181b20; --paper:#1d2026; --mist:#232731; --line:#30353f; --slate:#9aa4b2; --ink:#0b0c0e;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--blue)} @media (prefers-color-scheme: dark){a{color:#7fb0ff}}
+header.top{background:#121417;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header.top img{height:34px}
+header.top .wk{color:var(--amber);font-weight:700;letter-spacing:.04em;font-size:.85rem}
+header.top h1{margin:0;font-size:1.2rem;line-height:1.25}
+header.top nav{margin-left:auto;font-size:.85rem}
+header.top nav a{color:#fff;opacity:.8;text-decoration:none;margin-left:12px}
+main{max-width:1060px;margin:0 auto;padding:18px 16px 60px}
+.lead{color:var(--slate);max-width:760px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 12px;cursor:pointer;font:inherit;font-size:.9rem}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel{display:none}.panel.on{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--blue);padding:14px 16px}
+.card.amber{border-left-color:var(--amber)} .card.teal{border-left-color:var(--teal)} .card.brick{border-left-color:var(--brick)}
+.card.leaf{border-left-color:var(--leaf)} .card.plum{border-left-color:var(--plum)}
+.card h3{margin:0 0 6px;font-size:1rem}
+.label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--slate)}
+button.btn{background:var(--amber);color:#121417;border:0;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.btn.dark{background:var(--ink);color:#fff} button.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+button.btn:disabled{opacity:.45;cursor:default}
+input[type=number],input[type=text],select,textarea{font:inherit;padding:7px 9px;border:1px solid var(--line);background:var(--card);color:var(--fg);max-width:100%}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.big{font-size:2rem;font-weight:800;line-height:1.1}
+.big.brick{color:var(--brick)} .big.leaf{color:var(--leaf)} .big.blue{color:var(--blue)}
+.muted{color:var(--slate);font-size:.9rem}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.choice button{padding:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;cursor:pointer;text-align:left}
+.choice button:hover{border-color:var(--amber)}
+.choice button.sel{border:2px solid var(--amber);background:var(--paper)}
+table.t{border-collapse:collapse;width:100%;font-size:.92rem}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+table.t th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--slate)}
+.svgwrap{width:100%;overflow:hidden}
+svg.chart{width:100%;height:auto;display:block}
+.note{background:var(--paper);padding:10px 12px;font-size:.92rem;margin:10px 0}
+.ok{color:var(--leaf);font-weight:700} .bad{color:var(--brick);font-weight:700}
+footer{max-width:1060px;margin:0 auto;padding:16px;color:var(--slate);font-size:.8rem;border-top:1px solid var(--line)}
+.weekgrid a.card{display:block;text-decoration:none;color:inherit}
+.weekgrid a.card:hover{background:var(--paper)}
+.pill{display:inline-block;background:var(--mist);padding:2px 8px;font-size:.75rem;margin:2px 4px 2px 0}
+@media (max-width:560px){.choice{grid-template-columns:1fr}.big{font-size:1.6rem}}

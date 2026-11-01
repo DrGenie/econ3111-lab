@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time Machine</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="disc">Your discount rate</button>
+  <button data-tab="credit">True cost of credit</button>
+  <button data-tab="curves">Exponential vs beta-delta</button>
+</div>
+
+<section class="panel" id="disc">
+  <p class="lead">Six quick choices find the amount that makes you indifferent between $100 now and money later. We ask twice: once about today, once about a year from now.</p>
+  <div class="card amber" id="tq">
+    <div class="label" id="tlab"></div>
+    <div class="choice"><button id="tA"></button><button id="tB"></button></div>
+  </div>
+  <div class="grid" id="tres" style="display:none">
+    <div class="card"><div class="label">Now vs 1 month</div><p>Indifferent at about <b id="x1"></b></p><p>Monthly &delta; = <b id="d1"></b>; annual discount rate &asymp; <span class="big brick" id="r1"></span></p></div>
+    <div class="card"><div class="label">12 months vs 13 months</div><p>Indifferent at about <b id="x2"></b></p><p>Monthly &delta; = <b id="d2"></b>; annual rate &asymp; <span class="big blue" id="r2"></span></p></div>
+    <div class="card leaf"><div class="label">Verdict</div><p id="tver"></p></div>
+  </div>
+</section>
+
+<section class="panel" id="credit">
+  <div class="grid">
+    <div class="card teal">
+      <div class="label">Small amount loan or any fee-based credit</div>
+      <div class="row">Borrow $<input type="number" id="cb" value="500" style="width:100px"></div>
+      <div class="row">Up-front fee (% of amount) <input type="number" id="cf" value="20" style="width:80px"></div>
+      <div class="row">Monthly fee (% per month) <input type="number" id="cm" value="4" style="width:80px"></div>
+      <div class="row">Term (months) <input type="number" id="ct" value="1" style="width:80px"></div>
+      <p>Total fees: <b id="cfee"></b></p>
+      <p>Effective annual rate (compounded): <span class="big brick" id="car"></span></p>
+      <p class="muted">Australian small amount credit contracts (up to $2,000) may charge up to a 20% establishment fee plus 4% a month. Compare with a credit card near 20% a year or a savings account near 5%.</p>
+    </div>
+    <div class="card plum">
+      <div class="label">Compound growth</div>
+      <div class="row">Principal $<input type="number" id="gp" value="1000" style="width:100px"> Rate % <input type="number" id="gr" value="20" style="width:70px"> Years <input type="number" id="gy" value="20" style="width:70px"></div>
+      <div class="svgwrap" id="gchart"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="curves">
+  <div class="grid">
+    <div class="card amber">
+      <label>&delta; = <b id="dv"></b></label><input type="range" id="d" min="0.5" max="1" step="0.01" value="0.9">
+      <label>&beta; = <b id="bv"></b> (1 = exponential)</label><input type="range" id="b" min="0.1" max="1" step="0.01" value="0.5">
+      <p class="muted">The weight on utility t periods away: exponential &delta;<sup>t</sup>; beta-delta &beta;&delta;<sup>t</sup> for every t &ge; 1. The jump between now and next period is present bias.</p>
+    </div>
+    <div class="card"><div class="svgwrap" id="cchart"></div></div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(7, 'Time Machine');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+// titration: bisection on X in [100, 200]
+let block = 0, lo, hi, step, res = [];
+function startBlock() { lo = 100; hi = 200; step = 0; askT(); }
+function askT() {
+  const X = Math.round((lo + hi) / 2);
+  const when = block === 0 ? ['today', 'in 1 month'] : ['in 12 months', 'in 13 months'];
+  $('tlab').textContent = `Block ${block + 1} of 2, question ${step + 1} of 6`;
+  $('tA').textContent = `$100 ${when[0]}`; $('tB').textContent = `$${X} ${when[1]}`;
+  $('tA').onclick = () => { lo = X; next(); }; $('tB').onclick = () => { hi = X; next(); };
+}
+function next() {
+  step++;
+  if (step < 6) return askT();
+  res[block] = (lo + hi) / 2; block++;
+  if (block < 2) return startBlock();
+  $('tq').style.display = 'none'; $('tres').style.display = 'grid';
+  const show = (x, i) => { const d = 100 / x, r = Math.pow(x / 100, 12) - 1; $('x' + i).textContent = Lab.money(x); $('d' + i).textContent = d.toFixed(3); $('r' + i).textContent = Lab.pct(r, 0); return d; };
+  const d1 = show(res[0], 1), d2 = show(res[1], 2);
+  $('tver').innerHTML = d1 < d2 - 0.01 ? '<b>Present bias.</b> You need more to wait a month starting today than to wait the same month a year from now. Exponential discounting says these should be equal. That gap is what the beta-delta model captures (Week 8).' : Math.abs(d1 - d2) <= 0.01 ? '<b>Consistent with exponential discounting.</b> The same one-month delay costs you the same whether it starts now or in a year.' : '<b>Future bias.</b> Unusual: you are more patient about now than about later.';
+  Lab.store.set('delta', [d1, d2]);
+}
+startBlock();
+// credit
+function cred() {
+  const B = +$('cb').value, f = +$('cf').value / 100, m = +$('cm').value / 100, T = Math.max(1, +$('ct').value);
+  const fee = B * f + B * m * T; $('cfee').textContent = Lab.money(fee);
+  const monthly = Math.pow(1 + fee / B, 1 / T) - 1; $('car').textContent = Lab.pct(Math.pow(1 + monthly, 12) - 1, 0);
+  const P = +$('gp').value, r = +$('gr').value / 100, Y = +$('gy').value;
+  const pts = Array.from({ length: Y + 1 }, (_, t) => [t, P * Math.pow(1 + r, t)]), simple = Array.from({ length: Y + 1 }, (_, t) => [t, P * (1 + r * t)]);
+  Lab.line($('gchart'), { series: [{ pts, color: Lab.C.brick, label: 'compound' }, { pts: simple, color: Lab.C.slate, label: 'simple' }], xlabel: 'years', ylabel: '$', yfmt: v => '$' + Lab.fmt(v, 0) });
+}
+['cb','cf','cm','ct','gp','gr','gy'].forEach(id => $(id).addEventListener('input', cred)); cred();
+function curves() {
+  const d = +$('d').value, b = +$('b').value; $('dv').textContent = d.toFixed(2); $('bv').textContent = b.toFixed(2);
+  const e = Array.from({ length: 13 }, (_, t) => [t, Math.pow(d, t)]), h = e.map(([t, y]) => [t, t ? b * y : 1]);
+  Lab.line($('cchart'), { series: [{ pts: e, color: Lab.C.blue, label: 'exponential', dots: true }, { pts: h, color: Lab.C.brick, label: 'beta-delta', dots: true }], ymin: 0, ymax: 1.05, xlabel: 'periods from now', ylabel: 'weight' });
+}
+['d','b'].forEach(id => $(id).addEventListener('input', curves)); curves();
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bayes Machine</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="bayes">Bayes Machine</button>
+  <button data-tab="monty">Monty Hall</button>
+</div>
+
+<section class="panel" id="bayes">
+  <p class="lead">A test, a detector or a witness tells you <b>P(evidence | hypothesis)</b>. What you usually want is <b>P(hypothesis | evidence)</b>. The base rate decides how far apart they are.</p>
+  <div class="row"><span class="label">Presets</span>
+    <button class="btn ghost" data-p="ai">AI detector (Week 3 cold open)</button>
+    <button class="btn ghost" data-p="mam">Mammogram (Angner 5.20)</button>
+    <button class="btn ghost" data-p="cab">Cab problem (Ex. 5.22)</button>
+    <button class="btn ghost" data-p="fraud">Bank fraud flag</button>
+  </div>
+  <div class="grid">
+    <div class="card teal">
+      <label>Base rate P(H): <b id="bv"></b></label><input type="range" id="base" min="0.001" max="0.5" step="0.001">
+      <label>Sensitivity P(+ | H): <b id="sv"></b></label><input type="range" id="sens" min="0.5" max="1" step="0.001">
+      <label>False positive rate P(+ | not H): <b id="fv"></b></label><input type="range" id="fpr" min="0" max="0.3" step="0.001">
+      <div class="row" style="margin-top:12px"><span>P(H | +) =</span><span class="big brick" id="post"></span></div>
+      <p id="freq" class="note"></p>
+    </div>
+    <div class="card">
+      <div class="label">1,000 people (one square each)</div>
+      <div class="svgwrap" id="icons"></div>
+      <p class="muted"><span style="color:#B42318">&#9632;</span> H and flagged &nbsp; <span style="color:#e9a6a0">&#9632;</span> H but missed &nbsp; <span style="color:#E8A317">&#9632;</span> not H but flagged &nbsp; <span style="color:#c9ced6">&#9632;</span> not H, clear</p>
+    </div>
+  </div>
+  <div class="note">Numbers in the presets are for teaching. The AI-detector preset is hypothetical. The ABC reported in October 2025 that one Australian university logged nearly 6,000 misconduct cases in 2024, around 90% about AI, and later stopped using its detector.</div>
+</section>
+
+<section class="panel" id="monty">
+  <p class="lead">Three cups, one coin. Pick a cup. The host, who knows where the coin is, lifts an empty cup you did not pick. Stay or switch?</p>
+  <div class="grid">
+    <div class="card amber">
+      <div class="label">Play one round</div>
+      <div class="choice" id="cups" style="grid-template-columns:1fr 1fr 1fr"></div>
+      <p id="mmsg"></p>
+      <div class="row"><button class="btn" id="stay" disabled>Stay</button><button class="btn dark" id="switch" disabled>Switch</button><button class="btn ghost" id="mreset">New round</button></div>
+      <p class="muted" id="mscore"></p>
+    </div>
+    <div class="card">
+      <div class="label">Simulate many games</div>
+      <div class="row"><input type="number" id="nsim" value="10000" style="width:110px"><button class="btn dark" id="sim">Run</button></div>
+      <div class="svgwrap" id="mchart"></div>
+      <p id="simmsg"></p>
+    </div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(3, 'Bayes Machine');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+const P = { ai: [0.05, 0.98, 0.04], mam: [0.01, 0.90, 0.10], cab: [0.15, 0.80, 0.20], fraud: [0.001, 0.99, 0.01] };
+function setP(k) { const [b, s, f] = P[k]; $('base').value = b; $('sens').value = s; $('fpr').value = f; upd(); }
+document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => setP(b.dataset.p));
+
+function upd() {
+  const b = +$('base').value, s = +$('sens').value, f = +$('fpr').value;
+  $('bv').textContent = Lab.pct(b, 1); $('sv').textContent = Lab.pct(s, 1); $('fv').textContent = Lab.pct(f, 1);
+  const post = b * s / (b * s + (1 - b) * f || 1);
+  $('post').textContent = Lab.pct(post, 1);
+  const H = 1000 * b, tp = H * s, fp = (1000 - H) * f;
+  $('freq').innerHTML = `Out of 1,000: <b>${Lab.fmt(H,1)}</b> have H, and <b>${Lab.fmt(tp,1)}</b> of them test positive. Of the <b>${Lab.fmt(1000-H,1)}</b> without H, <b>${Lab.fmt(fp,1)}</b> test positive anyway. So ${Lab.fmt(tp,1)} of ${Lab.fmt(tp+fp,1)} positives are real: <b>${Lab.pct(post,1)}</b>.`;
+  // icon array
+  const s2 = Lab.svg($('icons'), 500, 200);
+  const nTP = Math.round(tp), nH = Math.round(H), nFP = Math.round(fp);
+  for (let i = 0; i < 1000; i++) {
+    const r = Math.floor(i / 50), c = i % 50;
+    let col = '#c9ced6';
+    if (i < nTP) col = '#B42318'; else if (i < nH) col = '#e9a6a0'; else if (i < nH + nFP) col = '#E8A317';
+    Lab.add(s2, 'rect', { x: c * 10, y: r * 10, width: 8.5, height: 8.5, fill: col });
+  }
+}
+['base','sens','fpr'].forEach(id => $(id).addEventListener('input', upd));
+setP('ai');
+
+// ---------- Monty Hall ----------
+let coin, pick, opened, phase, wins = { stay: [0, 0], switch: [0, 0] };
+function newRound() {
+  coin = Math.floor(Math.random() * 3); pick = null; opened = null; phase = 'pick';
+  $('mmsg').textContent = 'Pick a cup.'; $('stay').disabled = $('switch').disabled = true; draw();
+}
+function draw() {
+  $('cups').innerHTML = [0,1,2].map(i => {
+    let t = 'Cup ' + (i + 1);
+    if (i === opened) t += ' (empty)';
+    if (phase === 'done' && i === coin) t += ' → coin!';
+    return `<button data-i="${i}" class="${i === pick ? 'sel' : ''}" ${i === opened ? 'disabled' : ''}>${t}</button>`;
+  }).join('');
+  $('cups').querySelectorAll('button').forEach(b => b.onclick = () => choose(+b.dataset.i));
+}
+function choose(i) {
+  if (phase !== 'pick') return;
+  pick = i;
+  const options = [0,1,2].filter(j => j !== pick && j !== coin);
+  opened = options[Math.floor(Math.random() * options.length)];
+  phase = 'decide'; $('mmsg').textContent = `The host lifts cup ${opened + 1}: empty. Stay with cup ${pick + 1}, or switch?`;
+  $('stay').disabled = $('switch').disabled = false; draw();
+}
+function finish(sw) {
+  if (sw) pick = [0,1,2].find(j => j !== pick && j !== opened);
+  const win = pick === coin; const k = sw ? 'switch' : 'stay';
+  wins[k][0] += win; wins[k][1]++;
+  phase = 'done'; $('mmsg').innerHTML = win ? '<span class="ok">You win the coin.</span>' : '<span class="bad">Empty.</span>';
+  $('stay').disabled = $('switch').disabled = true; draw();
+  $('mscore').textContent = `Your record. Stay: ${wins.stay[0]}/${wins.stay[1]}. Switch: ${wins.switch[0]}/${wins.switch[1]}.`;
+}
+$('stay').onclick = () => finish(false); $('switch').onclick = () => finish(true); $('mreset').onclick = newRound;
+newRound();
+$('sim').onclick = () => {
+  const n = Math.min(200000, Math.max(10, +$('nsim').value || 10000));
+  let ws = 0, wsw = 0; const ptsS = [], ptsW = [];
+  for (let g = 1; g <= n; g++) {
+    const c = Math.floor(Math.random() * 3), p = Math.floor(Math.random() * 3);
+    if (p === c) ws++; else wsw++;
+    if (g % Math.ceil(n / 200) === 0 || g === n) { ptsS.push([g, ws / g]); ptsW.push([g, wsw / g]); }
+  }
+  Lab.line($('mchart'), { series: [{ pts: ptsW, color: Lab.C.leaf, label: 'always switch' }, { pts: ptsS, color: Lab.C.brick, label: 'always stay' }], ymin: 0, ymax: 1, xlabel: 'games played', ylabel: 'share won', yfmt: v => Lab.fmt(v * 100, 0) + '%' });
+  $('simmsg').innerHTML = `Switch won <b>${Lab.pct(wsw / n)}</b>, stay won <b>${Lab.pct(ws / n)}</b>. Switching wins whenever your first pick was wrong, which happens 2/3 of the time.`;
+};
+</script>
+</body>
+</html>

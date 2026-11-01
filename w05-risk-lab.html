@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="hl">Your risk attitude</button>
+  <button data-tab="ce">EU and certainty equivalent</button>
+  <button data-tab="stp">St Petersburg</button>
+</div>
+
+<section class="panel" id="hl">
+  <p class="lead">Holt and Laury's (2002) ten-row task. For each row, pick the option you prefer. Most people start with A and switch to B somewhere.</p>
+  <div class="card"><table class="t" id="hlt"></table>
+  <div class="row"><button class="btn dark" id="hlgo">Score me</button></div>
+  <div id="hlout"></div></div>
+</section>
+
+<section class="panel" id="ce">
+  <p class="lead">A gamble pays x<sub>1</sub> with probability p and x<sub>2</sub> otherwise. Choose a utility function and see expected value, expected utility, the certainty equivalent and the risk premium.</p>
+  <div class="grid">
+    <div class="card plum">
+      <div class="row">x<sub>1</sub> $<input type="number" id="x1" value="100" style="width:90px"> x<sub>2</sub> $<input type="number" id="x2" value="0" style="width:90px"></div>
+      <label>p = <b id="pv"></b></label><input type="range" id="p" min="0" max="1" step="0.01" value="0.5">
+      <label>Wealth before the gamble $<input type="number" id="w0" value="0" style="width:90px"></label>
+      <label style="display:block;margin-top:8px">Utility function
+        <select id="uf"><option value="crra">CRRA: u(x) = x^(1-r)/(1-r)</option><option value="lin">Linear: u(x) = x</option><option value="sqrt">Square root</option><option value="log">Log</option><option value="sq">Square: u(x) = x^2</option></select></label>
+      <label>r (CRRA) = <b id="rv"></b></label><input type="range" id="r" min="-1" max="3" step="0.05" value="0.5">
+      <table class="t" style="margin-top:8px">
+        <tr><td>Expected value</td><td id="ev"></td></tr>
+        <tr><td>Certainty equivalent</td><td id="cev"></td></tr>
+        <tr><td>Risk premium (EV &minus; CE)</td><td id="rp"></td></tr>
+        <tr><td>Attitude</td><td id="att"></td></tr>
+      </table>
+    </div>
+    <div class="card"><div class="svgwrap" id="uchart"></div><p class="muted">Blue: utility. Dashed: the chord between the two outcomes. Red dot: expected utility of the gamble at its EV. Green dot: the sure amount with the same utility, the CE.</p></div>
+  </div>
+</section>
+
+<section class="panel" id="stp">
+  <p class="lead">Flip a coin until the first head. Head on flip n pays $2<sup>n</sup>. The expected value is infinite. How much would you pay to play?</p>
+  <div class="grid">
+    <div class="card amber">
+      <div class="row">Games to play <input type="number" id="ng" value="1000" style="width:110px"><button class="btn dark" id="play">Play</button></div>
+      <p>Average payoff per game: <span class="big" id="avg"></span></p>
+      <p>Biggest single win: <b id="maxw"></b></p>
+      <p class="muted">Bernoulli (1738): with u(x) = log x, the expected utility is finite and the certainty equivalent is about $4. Most people offer well under $10.</p>
+    </div>
+    <div class="card"><div class="svgwrap" id="schart"></div></div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(5, 'Risk Lab');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+// ---------- Holt-Laury ----------
+let hlrows = '';
+for (let i = 1; i <= 10; i++) {
+  const p = i / 10;
+  hlrows += `<tr><td>${i}</td><td><label><input type="radio" name="r${i}" value="A" ${i <= 4 ? 'checked' : ''}> A: ${Math.round(p*100)}% $2.00, ${Math.round(100-p*100)}% $1.60</label></td><td><label><input type="radio" name="r${i}" value="B" ${i > 4 ? 'checked' : ''}> B: ${Math.round(p*100)}% $3.85, ${Math.round(100-p*100)}% $0.10</label></td></tr>`;
+}
+$('hlt').innerHTML = '<tr><th>Row</th><th>Option A (safer)</th><th>Option B (riskier)</th></tr>' + hlrows;
+const ranges = ['r < -0.95 (highly risk loving)','r < -0.95 (highly risk loving)','-0.95 < r < -0.49 (very risk loving)','-0.49 < r < -0.15 (risk loving)','-0.15 < r < 0.15 (about risk neutral)','0.15 < r < 0.41 (slightly risk averse)','0.41 < r < 0.68 (risk averse)','0.68 < r < 0.97 (very risk averse)','0.97 < r < 1.37 (highly risk averse)','1.37 < r (stay in bed)','row 10 safe: check your answers'];
+$('hlgo').onclick = () => {
+  const ch = Array.from({ length: 10 }, (_, i) => (document.querySelector(`input[name=r${i+1}]:checked`) || {}).value);
+  const safe = ch.filter(c => c === 'A').length;
+  const firstB = ch.indexOf('B'); const consistent = firstB < 0 || ch.slice(firstB).every(c => c === 'B');
+  $('hlout').innerHTML = `<p>You chose <b>${safe}</b> safe options. A risk-neutral person chooses 4.</p>
+   <p>Implied CRRA coefficient range: <b>${ranges[Math.min(safe, 10)] || ''}</b></p>
+   ${consistent ? '' : '<p class="bad">You switched back and forth. Many people do, but a consistent expected-utility maximiser switches at most once.</p>'}
+   <p class="muted">Row 10 is a check: B pays $3.85 for sure, so everyone should choose B there.</p>`;
+};
+// ---------- EU / CE ----------
+function makeU() {
+  const f = $('uf').value, r = +$('r').value;
+  if (f === 'lin') return [x => x, y => y];
+  if (f === 'sqrt') return [x => Math.sqrt(Math.max(0, x)), y => y * y];
+  if (f === 'log') return [x => Math.log(Math.max(1e-6, x)), y => Math.exp(y)];
+  if (f === 'sq') return [x => x * x, y => Math.sqrt(Math.max(0, y))];
+  if (Math.abs(r - 1) < 1e-9) return [x => Math.log(Math.max(1e-6, x)), y => Math.exp(y)];
+  return [x => Math.pow(Math.max(1e-6, x), 1 - r) / (1 - r), y => Math.pow(Math.max(1e-12, y * (1 - r)), 1 / (1 - r))];
+}
+function ce() {
+  $('pv').textContent = (+$('p').value).toFixed(2); $('rv').textContent = (+$('r').value).toFixed(2);
+  const [u, ui] = makeU(), w0 = +$('w0').value, x1 = +$('x1').value + w0, x2 = +$('x2').value + w0, p = +$('p').value;
+  const ev = p * x1 + (1 - p) * x2, eu = p * u(x1) + (1 - p) * u(x2), c = ui(eu);
+  $('ev').textContent = Lab.money(ev - w0); $('cev').textContent = Lab.money(c - w0); $('rp').textContent = Lab.money(ev - c);
+  $('att').textContent = ev - c > 0.005 ? 'risk averse (CE < EV)' : ev - c < -0.005 ? 'risk seeking (CE > EV)' : 'risk neutral (CE = EV)';
+  const lo = Math.max(0.01, Math.min(x1, x2) * 0.8), hi = Math.max(x1, x2) * 1.1 + 1;
+  const pts = Array.from({ length: 120 }, (_, i) => { const x = lo + (hi - lo) * i / 119; return [x, u(x)]; });
+  Lab.line($('uchart'), { series: [{ pts, color: Lab.C.blue }], refs: [{ x1: Math.min(x1,x2), y1: u(Math.min(x1,x2)), x2: Math.max(x1,x2), y2: u(Math.max(x1,x2)), color: Lab.C.slate }], ymin: Math.min(...pts.map(p => p[1])), ymax: Math.max(...pts.map(p => p[1])), xlabel: 'wealth ($)', ylabel: 'u(x)', points: [{ x: ev, y: eu, color: Lab.C.brick, label: 'EV' }, { x: c, y: eu, color: Lab.C.leaf, label: 'CE' }] });
+}
+['x1','x2','p','w0','uf','r'].forEach(id => $(id).addEventListener('input', ce)); ce();
+// ---------- St Petersburg ----------
+$('play').onclick = () => {
+  const n = Math.min(1e6, Math.max(1, +$('ng').value || 1000)); let sum = 0, mx = 0; const pts = [];
+  for (let g = 1; g <= n; g++) { let k = 1; while (Math.random() < 0.5) k++; const pay = Math.pow(2, k); sum += pay; mx = Math.max(mx, pay); if (g % Math.ceil(n / 200) === 0 || g === n) pts.push([g, sum / g]); }
+  $('avg').textContent = Lab.money(sum / n); $('maxw').textContent = Lab.money(mx, 0);
+  Lab.line($('schart'), { series: [{ pts, color: Lab.C.amber, label: 'running average payoff' }], xlabel: 'games', ylabel: '$ per game' });
+};
+</script>
+</body>
+</html>

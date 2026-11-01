@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECON3111 Lab</title>
+<meta name="description" content="Interactive behavioural economics simulations for ECON3111, University of Newcastle.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<p class="lead">One interactive lab for each week of ECON3111 Behavioural Economics. Every lab runs in your browser, works on a phone, and stores nothing on a server. Open the one for this week from the QR code on the slides, or pick from the list.</p>
+
+<div class="grid weekgrid" id="weeks"></div>
+
+<h2 style="margin-top:30px">Also here</h2>
+<div class="grid weekgrid">
+  <a class="card amber" href="podcast.html"><div class="label">Podcast</div><h3>Behave Yourself: the ECON3111 podcast</h3><p class="muted">Thirteen short episodes, one per week, plus the best outside episodes to listen to.</p></a>
+  <a class="card plum" href="live-lab.html"><div class="label">For the lecturer</div><h3>Live Lab: class results on screen</h3><p class="muted">Paste the room's answers and show the histogram, the anchoring effect or the beauty-contest winner in seconds.</p></a>
+</div>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header('', 'Behavioural Economics, hands on');
+const W = [
+ [1,'w01-money-pump.html','Money Pump','Rank four snacks. If your preferences cycle, the Lab will take your money one dollar at a time.','blue'],
+ [2,'w02-context-lab.html','Context Lab','Build a decoy, test your own anchor, and see when to bundle gains and losses.','amber'],
+ [3,'w03-bayes-machine.html','Bayes Machine','1,000 people on screen. Change the base rate and watch the posterior move. Plus Monty Hall.','teal'],
+ [4,'w04-are-you-random.html','Are You Random?','Type 50 coin flips. The Lab grades how random you really are.','brick'],
+ [5,'w05-risk-lab.html','Risk Lab','Measure your own risk attitude, find certainty equivalents, play St Petersburg.','plum'],
+ [6,'w06-prospect-studio.html','Prospect Theory Studio','Drag the value and weighting curves. See lottery tickets and insurance in one wallet.','amber'],
+ [7,'w07-time-machine.html','Time Machine','Six now-or-later questions reveal your discount rate. Plus the true cost of fast credit.','blue'],
+ [8,'w08-future-you.html','Future You','Naive, sophisticated or exponential: who misses the best movie? Plus the peak-end rule.','leaf'],
+ [9,'w09-game-lab.html','Game Lab','Type any 2x2 game and get every equilibrium. Run your own Axelrod tournament.','brick'],
+ [10,'w10-fairness-lab.html','Fairness Lab','Ultimatum offers to five hidden personalities, a beauty contest and public goods.','teal'],
+ [11,'w11-nudge-studio.html','Nudge Studio','Design a choice environment for 10,000 simulated students. Then spot the dark patterns.','plum'],
+ [12,'w12-final-boss.html','The Final Boss','The whole-course quiz board for teams.','amber']
+];
+document.getElementById('weeks').innerHTML = W.map(w => `<a class="card ${w[4]}" href="${w[1]}"><div class="label">Week ${w[0]}</div><h3>${w[2]}</h3><p class="muted">${w[3]}</p></a>`).join('');
+</script>
+</body>
+</html>

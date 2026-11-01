@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prospect Theory Studio</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="studio">Studio</button>
+  <button data-tab="allais">Allais and Ellsberg check</button>
+</div>
+
+<section class="panel" id="studio">
+  <p class="lead">Prospect theory values a gamble as V = &Sigma; &pi;(p) v(x): a value function over gains and losses, and decision weights instead of probabilities. Move the sliders. Defaults are Tversky and Kahneman's (1992) estimates.</p>
+  <div class="grid">
+    <div class="card amber">
+      <label>Curvature &alpha; = <b id="av"></b></label><input type="range" id="a" min="0.2" max="1" step="0.01" value="0.88">
+      <label>Loss aversion &lambda; = <b id="lv"></b></label><input type="range" id="l" min="1" max="4" step="0.05" value="2.25">
+      <label>Probability weighting &gamma; = <b id="gv"></b> (1 = no distortion)</label><input type="range" id="g" min="0.3" max="1" step="0.01" value="0.61">
+    </div>
+    <div class="card plum">
+      <div class="label">Evaluate a prospect</div>
+      <div class="row">Win/lose $<input type="number" id="x" value="100" style="width:90px"> with probability <input type="number" id="p" value="0.5" step="0.01" style="width:80px"> otherwise $<input type="number" id="y" value="-100" style="width:90px"></div>
+      <p>V(prospect) = <b id="V"></b> &nbsp; Expected value = <b id="EV"></b></p>
+      <p>Sure amount with the same V: <b id="CE"></b></p>
+      <p id="dec" class="big"></p>
+    </div>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><div class="label">Value function v(x)</div><div class="svgwrap" id="vchart"></div></div>
+    <div class="card"><div class="label">Weighting function &pi;(p)</div><div class="svgwrap" id="wchart"></div></div>
+  </div>
+  <div class="card teal" style="margin-top:14px"><div class="label">Your fourfold pattern ($1,000 prize or loss vs its expected value for sure)</div><table class="t" id="four"></table></div>
+</section>
+
+<section class="panel" id="allais">
+  <div class="grid">
+    <div class="card amber">
+      <div class="label">Allais (Angner Table 7.1)</div>
+      <p><b>Decision 1</b></p>
+      <div class="choice"><button data-q="a1" data-v="a">1a: $1m for sure</button><button data-q="a1" data-v="b">1b: 10% $5m, 89% $1m, 1% $0</button></div>
+      <p><b>Decision 2</b></p>
+      <div class="choice"><button data-q="a2" data-v="a">2a: 11% $1m, 89% $0</button><button data-q="a2" data-v="b">2b: 10% $5m, 90% $0</button></div>
+      <p id="amsg"></p>
+    </div>
+    <div class="card teal">
+      <div class="label">Ellsberg (Angner Table 7.4)</div>
+      <p>An urn holds 30 red balls and 60 black or yellow in an unknown mix. You win $100 on the colour named.</p>
+      <div class="choice"><button data-q="e1" data-v="a">I: bet on red</button><button data-q="e1" data-v="b">II: bet on black</button></div>
+      <div class="choice"><button data-q="e2" data-v="a">III: red or yellow</button><button data-q="e2" data-v="b">IV: black or yellow</button></div>
+      <p id="emsg"></p>
+    </div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(6, 'Prospect Theory Studio');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+const P = () => ({ a: +$('a').value, l: +$('l').value, g: +$('g').value });
+const v = (x, q) => x >= 0 ? Math.pow(x, q.a) : -q.l * Math.pow(-x, q.a);
+const vinv = (y, q) => y >= 0 ? Math.pow(y, 1 / q.a) : -Math.pow(-y / q.l, 1 / q.a);
+const w = (p, q) => p <= 0 ? 0 : p >= 1 ? 1 : Math.pow(p, q.g) / Math.pow(Math.pow(p, q.g) + Math.pow(1 - p, q.g), 1 / q.g);
+function upd() {
+  const q = P(); $('av').textContent = q.a.toFixed(2); $('lv').textContent = q.l.toFixed(2); $('gv').textContent = q.g.toFixed(2);
+  const vp = Array.from({ length: 101 }, (_, i) => { const x = -100 + 2 * i; return [x, v(x, q)]; });
+  Lab.line($('vchart'), { series: [{ pts: vp, color: Lab.C.brick }], refs: [{ x1: -100, y1: 0, x2: 100, y2: 0 }, { x1: 0, y1: v(-100, q), x2: 0, y2: v(100, q) }], xlabel: 'gain or loss ($)', ylabel: 'v(x)', ymin: v(-100, q), ymax: Math.max(v(100, q), 1) });
+  const wp = Array.from({ length: 101 }, (_, i) => [i / 100, w(i / 100, q)]);
+  Lab.line($('wchart'), { series: [{ pts: wp.map(([p]) => [p, p]), color: Lab.C.slate, dash: '5 5' }, { pts: wp, color: Lab.C.plum }], xmin: 0, xmax: 1, ymin: 0, ymax: 1, xlabel: 'probability p', ylabel: 'π(p)' });
+  const x = +$('x').value, y = +$('y').value, p = Math.min(1, Math.max(0, +$('p').value));
+  // separable (original) form, as taught in class
+  const V = w(p, q) * v(x, q) + w(1 - p, q) * v(y, q), EV = p * x + (1 - p) * y;
+  $('V').textContent = Lab.fmt(V, 2); $('EV').textContent = Lab.money(EV); $('CE').textContent = Lab.money(vinv(V, q));
+  $('dec').textContent = V > 0 ? 'Accept (V > 0)' : V < 0 ? 'Reject (V < 0)' : 'Indifferent'; $('dec').className = 'big ' + (V > 0 ? 'leaf' : 'brick');
+  const rows = [['Small p = 0.05', 0.05], ['Large p = 0.95', 0.95]].map(([lab, pp]) => {
+    const g = w(pp, q) * v(1000, q), gs = v(pp * 1000, q), l = w(pp, q) * v(-1000, q), ls = v(-pp * 1000, q);
+    return `<tr><td>${lab}</td><td>${g > gs ? '<b>risk seeking</b>: takes the gamble' : '<b>risk averse</b>: takes the sure $' + pp * 1000}</td><td>${l > ls ? '<b>risk seeking</b>: gambles on the loss' : '<b>risk averse</b>: pays the sure $' + pp * 1000}</td></tr>`;
+  });
+  $('four').innerHTML = '<tr><th></th><th>Gains</th><th>Losses</th></tr>' + rows.join('');
+}
+['a','l','g','x','y','p'].forEach(id => $(id).addEventListener('input', upd)); upd();
+
+const ans = {};
+document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
+  ans[b.dataset.q] = b.dataset.v;
+  document.querySelectorAll(`[data-q=${b.dataset.q}]`).forEach(x => x.classList.toggle('sel', x === b));
+  if (ans.a1 && ans.a2) $('amsg').innerHTML = ans.a1 === ans.a2 ? '<span class="ok">Consistent with expected utility.</span> Tickets 12 to 100 pay the same within each decision, so the sure-thing principle says your two choices should match, and they do.' : (ans.a1 === 'a' ? '<span class="bad">The classic Allais pattern (1a and 2b).</span> No expected utility function fits it: 1a needs 0.11u(1m) &gt; 0.10u(5m), 2b needs the reverse. The certainty effect at work.' : '<span class="bad">Inconsistent with expected utility</span> (the rarer 1b and 2a pattern).');
+  if (ans.e1 && ans.e2) $('emsg').innerHTML = (ans.e1 === 'a' && ans.e2 === 'b') ? '<span class="bad">The classic Ellsberg pattern (I and IV).</span> I implies P(red) &gt; P(black); IV implies P(black) &gt; P(red). You prefer known odds: ambiguity aversion.' : (ans.e1 === 'b' && ans.e2 === 'a') ? '<span class="bad">Ambiguity seeking (II and III).</span> Also inconsistent with any single probability belief.' : '<span class="ok">Consistent with a single probability belief.</span>';
+});
+</script>
+</body>
+</html>

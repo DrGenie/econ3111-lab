@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Context Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<p class="lead">In the rational benchmark, the menu, the order and the wording should not matter. Three short experiments show when they do.</p>
+<div class="tabs">
+  <button data-tab="decoy">1. Decoy builder</button>
+  <button data-tab="anchor">2. Your anchor</button>
+  <button data-tab="accounts">3. Mental accounts</button>
+</div>
+
+<section class="panel" id="decoy">
+  <div class="grid">
+    <div class="card amber">
+      <div class="label">Your menu</div>
+      <p>Two phone plans compete. Add a third plan and watch the shares of A and B. A decoy for B is <b>worse than B on both dimensions</b> but not worse than A on both.</p>
+      <table class="t"><tr><th></th><th>Data (GB)</th><th>Price ($/month)</th></tr>
+        <tr><td><b>A</b></td><td>20</td><td>30</td></tr>
+        <tr><td><b>B</b></td><td>60</td><td>50</td></tr>
+        <tr><td><b>Your plan C</b></td><td><input type="number" id="cg" value="50" style="width:80px"></td><td><input type="number" id="cp" value="55" style="width:80px"></td></tr>
+      </table>
+      <div class="row"><label><input type="checkbox" id="useC" checked> Include plan C</label></div>
+      <p class="muted">Shoppers here value 1 GB at about $0.50 to $0.60, so A and B are close. Each plan also gets a small boost for every plan it clearly beats (dominates): that is the attraction effect.</p>
+    </div>
+    <div class="card">
+      <div class="label">Simulated market shares (1,000 shoppers)</div>
+      <div class="svgwrap" id="decoyChart"></div>
+      <p id="decoyMsg"></p>
+    </div>
+  </div>
+  <div class="note"><b>Real data, Angner Table 3.1.</b> <i>The Economist</i>: web only $59, print only $125, print + web $125. With all three, 16% chose web and 84% print + web. Without the print-only decoy, 68% chose web and 32% print + web.</div>
+</section>
+
+<section class="panel" id="anchor">
+  <div class="grid">
+    <div class="card teal">
+      <div class="label">Step 1</div>
+      <p>Type the <b>last two digits</b> of your student number (or phone number).</p>
+      <div class="row"><input type="number" id="digits" min="0" max="99" value="" placeholder="e.g. 37" style="width:110px"><button class="btn" id="go">Start</button></div>
+      <div id="wtpq" style="display:none">
+        <p><b>Step 2.</b> For each item: would you pay <span id="anc"></span>? Then type the most you would pay.</p>
+        <div id="items"></div>
+        <button class="btn dark" id="done">Show my results</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Your answers</div>
+      <div class="svgwrap" id="anchorChart"></div>
+      <p id="anchorMsg" class="muted">The original study (Ariely, Loewenstein and Prelec, 2003) found that people with higher digits stated much higher maximum prices for the same items, yet still valued the better wine more than the worse one. Give your number to the lecturer for the Live Lab class chart.</p>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="accounts">
+  <div class="grid">
+    <div class="card plum">
+      <div class="label">Two events, one or two mental accounts?</div>
+      <div class="row">Event 1 ($)<input type="number" id="x1" value="50" style="width:100px"> Event 2 ($)<input type="number" id="x2" value="25" style="width:100px"></div>
+      <label class="muted">Loss aversion &lambda; = <b id="lv">2.25</b></label><input type="range" id="lam" min="1" max="4" step="0.05" value="2.25">
+      <label class="muted">Curvature &alpha; = <b id="av">0.88</b></label><input type="range" id="alp" min="0.3" max="1" step="0.01" value="0.88">
+      <p class="muted">Use negative numbers for losses. Value function: v(x) = x<sup>&alpha;</sup> for gains, &minus;&lambda;(&minus;x)<sup>&alpha;</sup> for losses.</p>
+    </div>
+    <div class="card">
+      <div class="label">Thaler's verdict</div>
+      <p>Segregated: v(x<sub>1</sub>) + v(x<sub>2</sub>) = <b id="seg"></b></p>
+      <p>Integrated: v(x<sub>1</sub> + x<sub>2</sub>) = <b id="int"></b></p>
+      <p class="big" id="verdict"></p>
+      <p id="why" class="muted"></p>
+    </div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(2, 'Context Lab');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+
+// ---------- decoy ----------
+function shares() {
+  const plans = [{n:'A', g:20, p:30}, {n:'B', g:60, p:50}];
+  if ($('useC').checked) plans.push({n:'C', g:+$('cg').value, p:+$('cp').value});
+  const counts = plans.map(() => 0), N = 1000;
+  // dominance boost for each plan it dominates
+  const dom = plans.map(a => plans.filter(b => b !== a && a.g >= b.g && a.p <= b.p && (a.g > b.g || a.p < b.p)).length);
+  for (let s = 0; s < N; s++) {
+    const w = 0.5 + 0.1 * Math.random();
+    const u = plans.map((pl, i) => w * pl.g - pl.p + 4 * dom[i] - Math.log(-Math.log(Math.random())) * 3);
+    counts[u.indexOf(Math.max(...u))]++;
+  }
+  Lab.bars($('decoyChart'), { labels: plans.map(p => 'Plan ' + p.n), values: counts.map(c => 100 * c / N), colors: [Lab.C.blue, Lab.C.leaf, Lab.C.brick], ymax: 100, vfmt: v => Lab.fmt(v, 0) + '%' , ylabel: '% choosing' });
+  const msg = $('useC').checked ? (dom[1] > 0 && dom[0] === 0 ? 'Plan C is a decoy for B: B dominates it, A does not. B gains share.' : dom[0] > 0 ? 'Plan C is dominated by A: a decoy for A.' : 'Plan C is not dominated by either target, so it competes directly.') : 'Two plans only. This is the baseline.';
+  $('decoyMsg').textContent = msg;
+}
+['cg','cp','useC'].forEach(id => $(id).addEventListener('input', shares)); shares();
+
+// ---------- anchoring ----------
+const goods = ['A bottle of average red wine', 'A box of Belgian chocolates', 'A wireless mouse', 'A textbook (used)'];
+$('go').onclick = () => {
+  const d = Math.max(0, Math.min(99, +$('digits').value || 0));
+  $('anc').textContent = '$' + d;
+  $('wtpq').style.display = 'block';
+  $('items').innerHTML = goods.map((g, i) => `<div class="row"><span style="min-width:220px">${g}</span><label><input type="checkbox" id="y${i}"> yes at $${d}</label><input type="number" id="w${i}" placeholder="max $" style="width:100px"></div>`).join('');
+  Lab.store.set('anchor', d);
+};
+$('done').onclick = () => {
+  const d = +$('digits').value || 0;
+  const w = goods.map((_, i) => +$('w' + i).value || 0);
+  Lab.bars($('anchorChart'), { labels: ['Your anchor', 'Wine', 'Chocolates', 'Mouse', 'Textbook'], values: [d, ...w], colors: [Lab.C.slate, Lab.C.amber, Lab.C.amber, Lab.C.amber, Lab.C.amber], vfmt: v => '$' + Lab.fmt(v, 0), ylabel: '$' });
+  const close = w.filter(v => Math.abs(v - d) <= 15).length;
+  $('anchorMsg').innerHTML = `${close} of your 4 prices are within $15 of your anchor. One person cannot show an anchoring effect; a class can. Send <b>anchor ${d}, wine ${w[0]}</b> to the Live Lab.`;
+};
+
+// ---------- mental accounting ----------
+function v(x) { const a = +$('alp').value, l = +$('lam').value; return x >= 0 ? Math.pow(x, a) : -l * Math.pow(-x, a); }
+function acct() {
+  $('lv').textContent = (+$('lam').value).toFixed(2); $('av').textContent = (+$('alp').value).toFixed(2);
+  const x1 = +$('x1').value, x2 = +$('x2').value, s = v(x1) + v(x2), i = v(x1 + x2);
+  $('seg').textContent = Lab.fmt(s, 2); $('int').textContent = Lab.fmt(i, 2);
+  const segBetter = s > i;
+  $('verdict').textContent = segBetter ? 'Segregate' : (Math.abs(s - i) < 1e-9 ? 'Indifferent' : 'Integrate');
+  $('verdict').className = 'big ' + (segBetter ? 'leaf' : 'blue');
+  let why = '';
+  if (x1 > 0 && x2 > 0) why = 'Two gains: concavity means two small wins feel better than one big one. Wrap presents separately.';
+  else if (x1 < 0 && x2 < 0) why = 'Two losses: convexity means one big loss hurts less than two small ones. Pay one bill, not two.';
+  else why = 'Mixed: if the gain is small relative to the loss, segregating it gives a "silver lining". If the gain is large, integrating it cancels the loss.';
+  $('why').textContent = why;
+}
+['x1','x2','lam','alp'].forEach(id => $(id).addEventListener('input', acct)); acct();
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>.pm input{width:52px;text-align:center}.pm td{text-align:center}.ne{background:rgba(232,163,23,.25)}</style>
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="solver">2&times;2 solver</button>
+  <button data-tab="ipd">Repeated dilemma</button>
+</div>
+
+<section class="panel" id="solver">
+  <p class="lead">Type the payoffs (Row's payoff first, Column's second). The Lab finds best responses, dominant strategies and every Nash equilibrium.</p>
+  <div class="row"><span class="label">Presets</span>
+    <button class="btn ghost" data-g="pd">Prisoners' dilemma</button><button class="btn ghost" data-g="coord">Coffee shops</button><button class="btn ghost" data-g="bos">Battle of the sexes</button><button class="btn ghost" data-g="chicken">Chicken</button><button class="btn ghost" data-g="stag">Stag hunt</button><button class="btn ghost" data-g="pennies">Matching pennies</button>
+  </div>
+  <div class="grid">
+    <div class="card"><table class="t pm" id="pm"></table></div>
+    <div class="card amber"><div id="sol"></div></div>
+  </div>
+</section>
+
+<section class="panel" id="ipd">
+  <p class="lead">Payoffs per round: both cooperate 3 each; both defect 1 each; a defector against a cooperator gets 5, the cooperator 0. Play 10 rounds against a hidden strategy, then run a full tournament.</p>
+  <div class="grid">
+    <div class="card teal">
+      <div class="label">Play 10 rounds</div>
+      <div class="row"><select id="opp"></select><button class="btn ghost" id="newgame">New game</button></div>
+      <div class="row"><button class="btn" id="C">Cooperate</button><button class="btn dark" id="D">Defect</button></div>
+      <div id="hist" class="muted"></div>
+      <p id="score"></p>
+    </div>
+    <div class="card plum">
+      <div class="label">Axelrod-style tournament</div>
+      <div class="row">Rounds per match <input type="number" id="rounds" value="200" style="width:90px"> Noise (mistakes %) <input type="number" id="noise" value="0" style="width:70px"><button class="btn dark" id="tour">Run</button></div>
+      <div class="svgwrap" id="tchart"></div>
+      <p class="muted">Each strategy plays every other strategy and a copy of itself. Bars show average points per round.</p>
+    </div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(9, 'Game Lab');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+const G = { pd: [[3,3],[0,5],[5,0],[1,1]], coord: [[1,1],[0,0],[0,0],[1,1]], bos: [[2,1],[0,0],[0,0],[1,2]], chicken: [[2,2],[1,3],[3,1],[0,0]], stag: [[3,3],[0,2],[2,0],[2,2]], pennies: [[1,-1],[-1,1],[-1,1],[1,-1]] };
+const lab = { pd: ['Cooperate','Defect'], coord: ['Starbucks',"Peet's"], bos: ['Football','Ballet'], chicken: ['Swerve','Straight'], stag: ['Stag','Hare'], pennies: ['Heads','Tails'] };
+let names = ['U','D','L','R'];
+function table(g) {
+  const [a,b,c,d] = g;
+  $('pm').innerHTML = `<tr><th></th><th>${names[2]}</th><th>${names[3]}</th></tr>
+   <tr><th>${names[0]}</th><td id="c0"><input id="p0" value="${a[0]}">,<input id="q0" value="${a[1]}"></td><td id="c1"><input id="p1" value="${b[0]}">,<input id="q1" value="${b[1]}"></td></tr>
+   <tr><th>${names[1]}</th><td id="c2"><input id="p2" value="${c[0]}">,<input id="q2" value="${c[1]}"></td><td id="c3"><input id="p3" value="${d[0]}">,<input id="q3" value="${d[1]}"></td></tr>`;
+  $('pm').querySelectorAll('input').forEach(i => i.addEventListener('input', solve)); solve();
+}
+function solve() {
+  const R = [0,1,2,3].map(i => +$('p' + i).value), Cc = [0,1,2,3].map(i => +$('q' + i).value);
+  // cells: 0=(U,L) 1=(U,R) 2=(D,L) 3=(D,R)
+  const brR = [R[0] >= R[2], R[1] >= R[3], R[2] >= R[0], R[3] >= R[1]]; // row best response in each column
+  const brC = [Cc[0] >= Cc[1], Cc[1] >= Cc[0], Cc[2] >= Cc[3], Cc[3] >= Cc[2]];
+  const ne = [0,1,2,3].filter(i => brR[i] && brC[i]);
+  [0,1,2,3].forEach(i => $('c' + i).className = ne.includes(i) ? 'ne' : '');
+  const cell = ['(' + names[0] + ', ' + names[2] + ')', '(' + names[0] + ', ' + names[3] + ')', '(' + names[1] + ', ' + names[2] + ')', '(' + names[1] + ', ' + names[3] + ')'];
+  let out = `<p><b>Pure Nash equilibria:</b> ${ne.length ? ne.map(i => cell[i]).join(', ') : 'none'}</p>`;
+  const domR = R[0] > R[2] && R[1] > R[3] ? names[0] : R[2] > R[0] && R[3] > R[1] ? names[1] : null;
+  const domC = Cc[0] > Cc[1] && Cc[2] > Cc[3] ? names[2] : Cc[1] > Cc[0] && Cc[3] > Cc[2] ? names[3] : null;
+  out += `<p>Row's strictly dominant strategy: <b>${domR || 'none'}</b>. Column's: <b>${domC || 'none'}</b>.</p>`;
+  // mixed: Row plays U with p making Column indifferent; Column plays L with q making Row indifferent
+  const den1 = (Cc[0] - Cc[1]) - (Cc[2] - Cc[3]), den2 = (R[0] - R[2]) - (R[1] - R[3]);
+  if (den1 !== 0 && den2 !== 0) {
+    const p = (Cc[3] - Cc[2]) / den1, q = (R[3] - R[1]) / den2;
+    if (p > 0 && p < 1 && q > 0 && q < 1) out += `<p><b>Mixed equilibrium:</b> Row plays ${names[0]} with p = ${Lab.fmt(p, 3)}; Column plays ${names[2]} with q = ${Lab.fmt(q, 3)}.</p><p class="muted">Each mixes to make the <i>other</i> player indifferent.</p>`;
+    else out += '<p class="muted">No fully mixed equilibrium.</p>';
+  }
+  const pareto = ne.filter(i => ![0,1,2,3].some(j => R[j] >= R[i] && Cc[j] >= Cc[i] && (R[j] > R[i] || Cc[j] > Cc[i])));
+  if (ne.length && pareto.length < ne.length) out += `<p class="bad">At least one equilibrium is Pareto dominated: both players could do better elsewhere.</p>`;
+  $('sol').innerHTML = out;
+}
+document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { names = [...lab[b.dataset.g], ...lab[b.dataset.g]]; table(G[b.dataset.g]); });
+names = [...lab.pd, ...lab.pd]; table(G.pd);
+
+// ---------- repeated PD ----------
+const pay = (a, b) => a === 'C' ? (b === 'C' ? 3 : 0) : (b === 'C' ? 5 : 1);
+const S = {
+  'Tit for tat': (me, op) => op.length ? op[op.length - 1] : 'C',
+  'Always defect': () => 'D',
+  'Always cooperate': () => 'C',
+  'Grim trigger': (me, op) => op.includes('D') ? 'D' : 'C',
+  'Random': () => Math.random() < .5 ? 'C' : 'D',
+  'Tit for two tats': (me, op) => op.length > 1 && op[op.length - 1] === 'D' && op[op.length - 2] === 'D' ? 'D' : 'C',
+  'Suspicious tit for tat': (me, op) => op.length ? op[op.length - 1] : 'D',
+  'Pavlov (win-stay, lose-shift)': (me, op) => { if (!me.length) return 'C'; const l = me.length - 1; return pay(me[l], op[l]) >= 3 ? me[l] : (me[l] === 'C' ? 'D' : 'C'); }
+};
+$('opp').innerHTML = Object.keys(S).map((k, i) => `<option value="${k}">Opponent ${String.fromCharCode(65 + i)}</option>`).join('');
+let mine = [], theirs = [], ms = 0, ts = 0;
+function newGame() { mine = []; theirs = []; ms = ts = 0; $('hist').textContent = ''; $('score').textContent = 'Round 1 of 10.'; }
+function move(m) {
+  if (mine.length >= 10) return;
+  const o = S[$('opp').value](theirs, mine);
+  mine.push(m); theirs.push(o); ms += pay(m, o); ts += pay(o, m);
+  $('hist').innerHTML = 'You: ' + mine.join(' ') + '<br>Them: ' + theirs.join(' ');
+  $('score').innerHTML = mine.length < 10 ? `You ${ms}, them ${ts}. Round ${mine.length + 1} of 10.` : `Final: you <b>${ms}</b>, them <b>${ts}</b>. The opponent was <b>${$('opp').value}</b>.`;
+}
+$('C').onclick = () => move('C'); $('D').onclick = () => move('D'); $('newgame').onclick = newGame; $('opp').onchange = newGame; newGame();
+$('tour').onclick = () => {
+  const n = Math.max(1, Math.min(2000, +$('rounds').value || 200)), eps = Math.max(0, Math.min(50, +$('noise').value || 0)) / 100;
+  const ks = Object.keys(S), tot = ks.map(() => 0), games = ks.map(() => 0);
+  ks.forEach((a, i) => ks.forEach((b, j) => { if (j < i) return;
+    const A = [], B = []; let sa = 0, sb = 0;
+    for (let r = 0; r < n; r++) {
+      let x = S[a](A, B), y = S[b](B, A);
+      if (Math.random() < eps) x = x === 'C' ? 'D' : 'C'; if (Math.random() < eps) y = y === 'C' ? 'D' : 'C';
+      A.push(x); B.push(y); sa += pay(x, y); sb += pay(y, x);
+    }
+    tot[i] += sa / n; games[i]++; if (i !== j) { tot[j] += sb / n; games[j]++; }
+  }));
+  const avg = tot.map((t, i) => t / games[i]), order = ks.map((k, i) => [k, avg[i]]).sort((a, b) => b[1] - a[1]);
+  Lab.bars($('tchart'), { labels: order.map(o => o[0].split(' ').map(w => w[0]).join('').toUpperCase()), values: order.map(o => o[1]), ymax: 5, ylabel: 'points per round', vfmt: v => Lab.fmt(v, 2) });
+  $('tchart').insertAdjacentHTML('beforeend', '<p class="muted">' + order.map((o, i) => `${i + 1}. ${o[0]} (${Lab.fmt(o[1], 2)})`).join('; ') + '</p>');
+};
+</script>
+</body>
+</html>

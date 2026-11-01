@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<p class="lead">For the lecturer. Collect answers on slips, a Canvas quiz or a form, paste them here and put the result on the projector. Nothing is uploaded.</p>
+<div class="tabs">
+  <button data-tab="numbers">Any numbers</button>
+  <button data-tab="beauty">Number game (Week 0 and 10)</button>
+  <button data-tab="anchor">Anchoring (Week 2)</button>
+  <button data-tab="split">Split-room vote (Weeks 0, 2, 6)</button>
+</div>
+
+<section class="panel" id="numbers">
+  <div class="grid"><div class="card"><textarea id="n1" rows="8" style="width:100%" placeholder="One number per line, or separated by commas"></textarea><div class="row"><button class="btn dark" id="n1go">Show</button></div><p id="n1s"></p></div>
+  <div class="card"><div class="svgwrap" id="n1c"></div></div></div>
+</section>
+
+<section class="panel" id="beauty">
+  <div class="grid"><div class="card teal"><textarea id="b1" rows="8" style="width:100%" placeholder="Guesses from 0 to 100"></textarea>
+  <div class="row">Multiplier <input type="number" id="bp" value="0.6667" step="0.01" style="width:90px"><button class="btn dark" id="b1go">Reveal</button></div><p id="b1s"></p></div>
+  <div class="card"><div class="svgwrap" id="b1c"></div></div></div>
+</section>
+
+<section class="panel" id="anchor">
+  <div class="grid"><div class="card amber"><textarea id="a1" rows="8" style="width:100%" placeholder="anchor, max price   (one student per line, e.g. 37, 15)"></textarea><div class="row"><button class="btn dark" id="a1go">Show</button></div><p id="a1s"></p></div>
+  <div class="card"><div class="svgwrap" id="a1c"></div></div></div>
+</section>
+
+<section class="panel" id="split">
+  <div class="grid"><div class="card plum">
+    <p><b>Frame 1</b> (e.g. lives saved): sure option <input type="number" id="s1a" value="0" style="width:70px"> gamble <input type="number" id="s1b" value="0" style="width:70px"></p>
+    <p><b>Frame 2</b> (e.g. lives lost): sure option <input type="number" id="s2a" value="0" style="width:70px"> gamble <input type="number" id="s2b" value="0" style="width:70px"></p>
+    <div class="row"><button class="btn dark" id="sgo">Show</button></div>
+    <p class="muted">Original study (Tversky and Kahneman, 1981): 72% chose the sure option in the gain frame, 22% in the loss frame.</p></div>
+  <div class="card"><div class="svgwrap" id="sc"></div></div></div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header('', 'Live Lab');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+const nums = t => t.split(/[\s,;]+/).map(Number).filter(x => !isNaN(x) && x !== '' );
+const stats = a => { const n = a.length, m = a.reduce((x, y) => x + y, 0) / n, s = [...a].sort((x, y) => x - y); return { n, m, med: n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2, min: s[0], max: s[n - 1] }; };
+$('n1go').onclick = () => { const a = nums($('n1').value); if (!a.length) return; const s = stats(a); $('n1s').innerHTML = `n = ${s.n}, mean ${Lab.fmt(s.m)}, median ${Lab.fmt(s.med)}, range ${Lab.fmt(s.min)} to ${Lab.fmt(s.max)}`; Lab.hist($('n1c'), a, { bins: 10, ylabel: 'count' }); };
+$('b1go').onclick = () => {
+  const a = nums($('b1').value).filter(x => x >= 0 && x <= 100); if (!a.length) return; const s = stats(a), t = s.m * +$('bp').value;
+  const best = Math.min(...a.map(x => Math.abs(x - t))), win = [...new Set(a.filter(x => Math.abs(x - t) === best))];
+  $('b1s').innerHTML = `n = ${s.n}. Average ${Lab.fmt(s.m, 2)}. Target <span class="big brick">${Lab.fmt(t, 2)}</span><br>Winning guess: <b>${win.join(', ')}</b>. Level 1 = ${Lab.fmt(50 * +$('bp').value, 1)}, level 2 = ${Lab.fmt(50 * Math.pow(+$('bp').value, 2), 1)}, Nash = 0.`;
+  Lab.hist($('b1c'), a, { lo: 0, hi: 100, bins: 20, xlabel: 'guess', ylabel: 'students' });
+};
+$('a1go').onclick = () => {
+  const rows = $('a1').value.split('\n').map(l => nums(l)).filter(r => r.length >= 2); if (!rows.length) return;
+  const q = [0, 1, 2, 3, 4].map(k => rows.filter(r => Math.min(4, Math.floor(r[0] / 20)) === k).map(r => r[1]));
+  const means = q.map(g => g.length ? g.reduce((x, y) => x + y, 0) / g.length : 0);
+  const n = rows.length, mx = rows.reduce((s, r) => s + r[0], 0) / n, my = rows.reduce((s, r) => s + r[1], 0) / n;
+  const cov = rows.reduce((s, r) => s + (r[0] - mx) * (r[1] - my), 0), vx = rows.reduce((s, r) => s + (r[0] - mx) ** 2, 0), vy = rows.reduce((s, r) => s + (r[1] - my) ** 2, 0);
+  $('a1s').innerHTML = `n = ${n}. Correlation between anchor and price: <b>${Lab.fmt(cov / Math.sqrt(vx * vy || 1), 2)}</b>. Group sizes: ${q.map(g => g.length).join(', ')}.`;
+  Lab.bars($('a1c'), { labels: ['00 to 19', '20 to 39', '40 to 59', '60 to 79', '80 to 99'], values: means, vfmt: v => '$' + Lab.fmt(v, 1), ylabel: 'mean max price ($)', xlabel: 'last two digits' });
+};
+$('sgo').onclick = () => {
+  const p1 = +$('s1a').value / ((+$('s1a').value + +$('s1b').value) || 1), p2 = +$('s2a').value / ((+$('s2a').value + +$('s2b').value) || 1);
+  Lab.bars($('sc'), { labels: ['Frame 1: sure option', 'Frame 2: sure option'], values: [100 * p1, 100 * p2], colors: [Lab.C.blue, Lab.C.brick], ymax: 100, vfmt: v => Lab.fmt(v, 0) + '%', ylabel: '% choosing the sure option' });
+};
+</script>
+</body>
+</html>

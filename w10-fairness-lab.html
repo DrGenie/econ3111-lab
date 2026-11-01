@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fairness Lab</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="ult">Ultimatum vs five personalities</button>
+  <button data-tab="beauty">Beauty contest</button>
+  <button data-tab="public">Public goods</button>
+</div>
+
+<section class="panel" id="ult">
+  <p class="lead">You split $10 with five responders. Each has inequality-averse preferences u = x &minus; &alpha;&middot;max(y &minus; x, 0): they dislike getting less than you. One is a pure egoist. Make each an offer, then guess who is who.</p>
+  <div class="card amber"><table class="t" id="ut"></table>
+  <div class="row"><button class="btn dark" id="ugo">Make offers</button><button class="btn ghost" id="ureveal">Reveal personalities</button></div>
+  <p id="uout"></p></div>
+</section>
+
+<section class="panel" id="beauty">
+  <p class="lead">Everyone picks 0 to 100. The winner is closest to <b>p &times; the average</b>. Set the share of players at each level of reasoning and see what wins (Angner 11.4; Nagel 1995).</p>
+  <div class="grid">
+    <div class="card teal">
+      <label>p = <b id="pv"></b></label><input type="range" id="p" min="0.3" max="0.9" step="0.01" value="0.667">
+      <label>Level 0 (random) <b id="s0v"></b>%</label><input type="range" id="s0" min="0" max="100" value="25">
+      <label>Level 1 <b id="s1v"></b>%</label><input type="range" id="s1" min="0" max="100" value="35">
+      <label>Level 2 <b id="s2v"></b>%</label><input type="range" id="s2" min="0" max="100" value="25">
+      <label>Level 3 <b id="s3v"></b>%</label><input type="range" id="s3" min="0" max="100" value="10">
+      <label>Nash (0) <b id="s4v"></b>%</label><input type="range" id="s4" min="0" max="100" value="5">
+      <div class="row"><span>Your guess</span><input type="number" id="mine" value="25" style="width:80px"></div>
+    </div>
+    <div class="card"><div class="svgwrap" id="bchart"></div><p id="bmsg"></p></div>
+  </div>
+</section>
+
+<section class="panel" id="public">
+  <p class="lead">Groups of four. Each round everyone has 10 points and can put some in a group fund that is doubled and shared equally. Simulated players: free riders, conditional cooperators (match last round's average, minus a little) and altruists.</p>
+  <div class="grid">
+    <div class="card plum">
+      <label>Free riders <b id="frv"></b>%</label><input type="range" id="fr" min="0" max="100" value="30">
+      <label>Altruists <b id="alv"></b>%</label><input type="range" id="al" min="0" max="100" value="10">
+      <p class="muted">The rest are conditional cooperators.</p>
+      <label>Punishment from round 7 <input type="checkbox" id="pun" checked></label>
+      <div class="row"><button class="btn dark" id="pgo">Run 1,000 groups for 12 rounds</button></div>
+    </div>
+    <div class="card"><div class="svgwrap" id="pchart"></div><p class="muted">Fehr and G&auml;chter (2000): contributions decay without punishment and rise with it.</p></div>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(10, 'Fairness Lab');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+// ---------- ultimatum ----------
+let alphas = [0, 0.25, 0.5, 1, 4];
+alphas = alphas.map(a => [a, Math.random()]).sort((a, b) => a[1] - b[1]).map(a => a[0]);
+const types = { 0: 'Egoist', 0.25: 'Mildly inequality averse', 0.5: 'Moderately inequality averse', 1: 'Strongly inequality averse', 4: 'Very strongly inequality averse' };
+$('ut').innerHTML = '<tr><th>Responder</th><th>Your offer ($0 to $10)</th><th>Result</th><th>Your guess of type</th></tr>' + alphas.map((a, i) => `<tr><td>${String.fromCharCode(65 + i)}</td><td><input type="number" id="o${i}" min="0" max="10" value="3" style="width:70px"></td><td id="r${i}"></td><td><select id="g${i}">${Object.values(types).map(t => `<option>${t}</option>`).join('')}</select></td></tr>`).join('');
+$('ugo').onclick = () => {
+  let earn = 0;
+  alphas.forEach((a, i) => {
+    const y = Math.max(0, Math.min(10, +$('o' + i).value)), x = 10 - y; // responder gets y, proposer x
+    const u = y - a * Math.max(x - y, 0), ok = u >= 0;
+    if (ok) earn += x;
+    $('r' + i).innerHTML = ok ? `<span class="ok">Accepted</span>: you keep $${x}` : '<span class="bad">Rejected</span>: both get $0';
+  });
+  $('uout').innerHTML = `You earned <b>$${earn}</b> of a possible $50. A responder with &alpha; accepts any offer of at least 10&alpha;/(1+2&alpha;).`;
+};
+$('ureveal').onclick = () => {
+  let right = 0;
+  alphas.forEach((a, i) => { const t = types[a]; if ($('g' + i).value === t) right++; $('r' + i).innerHTML += ` <span class="muted">(${t}, &alpha; = ${a}; minimum ${Lab.fmt(10 * a / (1 + 2 * a), 2)})</span>`; });
+  $('uout').innerHTML += ` You identified <b>${right} of 5</b> correctly.`;
+};
+// ---------- beauty contest ----------
+function beauty() {
+  const p = +$('p').value; $('pv').textContent = p.toFixed(2);
+  const sh = [0,1,2,3,4].map(i => +$('s' + i).value); [0,1,2,3,4].forEach(i => $('s' + i + 'v').textContent = sh[i]);
+  const tot = sh.reduce((a, b) => a + b, 0) || 1, N = 2000, guesses = [];
+  const lv = [null, 50 * p, 50 * p * p, 50 * p * p * p, 0];
+  for (let n = 0; n < N; n++) {
+    let r = Math.random() * tot, k = 0; while (r > sh[k]) { r -= sh[k]; k++; }
+    let g = k === 0 ? Math.random() * 100 : lv[k] + (k < 4 ? (Math.random() - .5) * 6 : 0);
+    guesses.push(Math.max(0, Math.min(100, g)));
+  }
+  const mean = guesses.reduce((a, b) => a + b, 0) / N, target = p * mean;
+  Lab.hist($('bchart'), guesses, { lo: 0, hi: 100, bins: 20, xlabel: 'guess', ylabel: 'players', color: Lab.C.amber });
+  const mine = +$('mine').value;
+  $('bmsg').innerHTML = `Average guess <b>${Lab.fmt(mean, 1)}</b>, target ${p.toFixed(2)} &times; average = <span class="big brick">${Lab.fmt(target, 1)}</span><br>Level 1 guesses ${Lab.fmt(lv[1], 1)}, level 2 ${Lab.fmt(lv[2], 1)}, level 3 ${Lab.fmt(lv[3], 1)}. Your guess ${mine} is ${Lab.fmt(Math.abs(mine - target), 1)} away. The Nash answer, 0, ${target > 5 ? 'does not win here' : 'is close to winning here'}.`;
+}
+['p','s0','s1','s2','s3','s4','mine'].forEach(id => $(id).addEventListener('input', beauty)); beauty();
+// ---------- public goods ----------
+function pg() {
+  const fr = +$('fr').value / 100, al = +$('al').value / 100; $('frv').textContent = $('fr').value; $('alv').textContent = $('al').value;
+  const G = 1000, T = 12, avg = Array(T).fill(0), pun = $('pun').checked;
+  for (let g = 0; g < G; g++) {
+    const typ = Array.from({ length: 4 }, () => { const r = Math.random(); return r < fr ? 'F' : r < fr + al ? 'A' : 'C'; });
+    let last = 5, fearF = 0;
+    for (let t = 0; t < T; t++) {
+      const punishOn = pun && t >= 6;
+      const c = typ.map(k => k === 'A' ? 10 : k === 'F' ? (punishOn ? Math.min(10, 2 + fearF) : 0) : Math.max(0, Math.min(10, (t === 0 ? 5 + 2 * Math.random() : last - 0.6 + Math.random() * 0.6) + (punishOn ? 1.5 : 0))));
+      const m = c.reduce((a, b) => a + b, 0) / 4; avg[t] += m / G; last = m;
+      if (punishOn) fearF = Math.min(10, fearF + 2.5); // free riders learn they get punished
+    }
+  }
+  Lab.line($('pchart'), { series: [{ pts: avg.map((v, t) => [t + 1, v]), color: Lab.C.plum, dots: true, label: 'average contribution' }], ymin: 0, ymax: 10, xlabel: 'round', ylabel: 'points contributed (of 10)', refs: pun ? [{ x1: 6.5, y1: 0, x2: 6.5, y2: 10, color: Lab.C.brick }] : [] });
+}
+['fr','al','pun'].forEach(id => $(id).addEventListener('input', pg)); $('pgo').onclick = pg; pg();
+</script>
+</body>
+</html>

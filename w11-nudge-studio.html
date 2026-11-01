@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nudge Studio</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="studio">Nudge Studio</button>
+  <button data-tab="dark">Dark pattern spotter</button>
+</div>
+
+<section class="panel" id="studio">
+  <p class="lead">10,000 simulated students decide whether to get a free flu vaccine on campus. Each has a benefit, a hassle cost, present bias and limited attention. Change the choice architecture and watch uptake. Nothing here bans or pays anyone: these are nudges and sludge.</p>
+  <div class="grid">
+    <div class="card plum">
+      <div class="label">Choice architecture</div>
+      <label><input type="checkbox" id="def"> <b>Default</b>: every student gets a pre-booked time (they can cancel in one click)</label><br>
+      <label><input type="checkbox" id="rem"> <b>Reminder</b> text the day before</label><br>
+      <label><input type="checkbox" id="norm"> <b>Social norm</b>: "7 in 10 students in your course have booked"</label><br>
+      <label><input type="checkbox" id="plan"> <b>Plan-making prompt</b>: "Write the day and time you will go"</label><br>
+      <label>Hassle (minutes to book and attend): <b id="hv"></b></label><input type="range" id="hassle" min="2" max="60" value="25">
+      <label><input type="checkbox" id="sludge"> <b>Sludge</b>: booking needs a phone call during office hours</label>
+      <p class="muted">Model: a student gets vaccinated if they notice, and benefit &times; &beta; exceeds today's hassle cost. Defaults remove the need to notice; reminders raise attention; norms raise perceived benefit; plans reduce forgetting. Parameters are illustrative, not estimates.</p>
+    </div>
+    <div class="card">
+      <div class="label">Uptake</div>
+      <div class="big blue" id="up"></div>
+      <div class="svgwrap" id="nchart"></div>
+      <p id="nmsg" class="muted"></p>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="dark">
+  <p class="lead">Name the trick. From 1 July 2027, Australia's unfair trading practices law targets many of these.</p>
+  <div id="dp"></div>
+  <p id="dscore" class="big"></p>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(11, 'Nudge Studio');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+// fixed population (seeded so results do not jump)
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const N = 10000, pop = Array.from({ length: N }, () => ({ b: 10 + 50 * rnd(), beta: 0.3 + 0.7 * rnd(), att: rnd(), forget: rnd() }));
+function sim(o) {
+  let n = 0;
+  pop.forEach(s => {
+    const hassle = o.hassle * (o.sludge ? 2.2 : 1) * 0.6;
+    const benefit = s.b * (o.norm ? 1.15 : 1);
+    const notice = o.def ? true : s.att < (o.rem ? 0.75 : 0.45);
+    const follow = o.plan ? s.forget < 0.85 : s.forget < 0.6;
+    if (o.def) { // must actively cancel; cancel if benefit clearly below cost and they notice
+      const cancels = s.att < 0.5 && s.beta * benefit < hassle * 0.5;
+      if (!cancels && s.forget < (o.rem ? 0.95 : o.plan ? 0.9 : 0.8)) n++;
+    } else if (notice && follow && s.beta * benefit > hassle) n++;
+  });
+  return n / N;
+}
+function opts() { return { def: $('def').checked, rem: $('rem').checked, norm: $('norm').checked, plan: $('plan').checked, hassle: +$('hassle').value, sludge: $('sludge').checked }; }
+function upd() {
+  $('hv').textContent = $('hassle').value;
+  const o = opts(), u = sim(o); $('up').textContent = Lab.pct(u, 1);
+  const base = sim({ def: false, rem: false, norm: false, plan: false, hassle: o.hassle, sludge: false });
+  const designs = [['No nudges', base], ['Your design', u], ['Reminder only', sim({ ...o, def: false, norm: false, plan: false, sludge: false, rem: true })], ['Default only', sim({ ...o, def: true, rem: false, norm: false, plan: false, sludge: false })]];
+  Lab.bars($('nchart'), { labels: designs.map(d => d[0]), values: designs.map(d => 100 * d[1]), colors: [Lab.C.slate, Lab.C.amber, Lab.C.teal, Lab.C.leaf], ymax: 100, vfmt: v => Lab.fmt(v, 0) + '%', ylabel: '% vaccinated' });
+  $('nmsg').innerHTML = `Your design changes uptake by <b>${Lab.fmt(100 * (u - base), 1)} percentage points</b> versus no nudges. ${o.sludge ? 'Sludge alone can undo several nudges.' : ''} Real nudge-unit trials average about 1.4 points (DellaVigna and Linos, 2022), though defaults are often far larger.`;
+}
+['def','rem','norm','plan','hassle','sludge'].forEach(id => $(id).addEventListener('input', upd)); upd();
+
+const Q = [
+  ['A hotel site shows "Only 1 room left at this price!" on every room, every day.', 'Fake scarcity', ['Fake scarcity', 'Drip pricing', 'Confirmshaming', 'Roach motel']],
+  ['A $49 concert ticket becomes $71.40 after "service" and "facility" fees at the last checkout step.', 'Drip pricing', ['Decoy', 'Drip pricing', 'Fake scarcity', 'Default']],
+  ['To decline the add-on you must click "No thanks, I don\'t care about protecting my phone".', 'Confirmshaming', ['Confirmshaming', 'Anchoring', 'Roach motel', 'Social proof']],
+  ['Signing up takes one click; cancelling requires a phone call during business hours.', 'Roach motel (subscription trap)', ['Drip pricing', 'Roach motel (subscription trap)', 'Decoy', 'Fake urgency']],
+  ['Travel insurance is already ticked when you reach the payment page.', 'Pre-ticked default', ['Pre-ticked default', 'Fake scarcity', 'Confirmshaming', 'Anchoring']],
+  ['A countdown says the sale ends in 09:59, and resets when you reload the page.', 'Fake urgency', ['Fake urgency', 'Decoy', 'Mental accounting', 'Roach motel (subscription trap)']]
+];
+let score = 0, answered = 0;
+$('dp').innerHTML = Q.map((q, i) => `<div class="card brick" style="margin:10px 0"><p>${i + 1}. ${q[0]}</p><div class="row">${q[2].map(o => `<button class="btn ghost" data-i="${i}" data-o="${o}">${o}</button>`).join('')}</div><p id="f${i}"></p></div>`).join('');
+document.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+  const i = +b.dataset.i; if ($('f' + i).textContent) return;
+  const ok = b.dataset.o === Q[i][1]; score += ok; answered++;
+  $('f' + i).innerHTML = ok ? '<span class="ok">Correct.</span>' : `<span class="bad">Not quite:</span> ${Q[i][1]}.`;
+  if (answered === Q.length) $('dscore').textContent = `${score} / ${Q.length}`;
+});
+</script>
+</body>
+</html>

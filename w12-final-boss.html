@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Final Boss</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.board .h{color:#fff;font-weight:700;padding:10px 6px;text-align:center;font-size:.9rem}
+.board button{font:inherit;font-size:1.4rem;font-weight:800;padding:18px 0;background:var(--card);border:1px solid var(--line);color:var(--fg);cursor:pointer}
+.board button.used{opacity:.25;cursor:default}
+#qbox{display:none;position:fixed;inset:0;background:rgba(18,20,23,.94);color:#fff;padding:24px;z-index:9;overflow:auto}
+#qbox .inner{max-width:900px;margin:5vh auto}
+#qbox .q{font-size:1.7rem;line-height:1.35;font-weight:700}
+#qbox .a{font-size:1.3rem;color:#E8A317;margin-top:20px;display:none}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:16px}
+.teams .card input{width:100%;font-weight:700}
+@media(max-width:640px){.board{grid-template-columns:repeat(3,1fr)}.board button{font-size:1rem;padding:12px 0}}
+</style>
+</head>
+<body>
+<main>
+<p class="lead">Teams take turns to pick a square. 30 seconds to write an answer. Every team may answer; the picking team scores double. Click a square to open it, then reveal the answer.</p>
+<div class="board" id="board"></div>
+<div class="teams" id="teams"></div>
+</main>
+<div id="qbox"><div class="inner"><div class="label" style="color:#E8A317" id="qcat"></div><div class="q" id="qq"></div><div class="a" id="qa"></div>
+<div class="row" style="margin-top:24px"><button class="btn" id="show">Reveal answer</button><button class="btn ghost" style="color:#fff" id="close">Back to board</button></div></div></div>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(12, 'The Final Boss');
+const $ = id => document.getElementById(id);
+const cats = [['Choosing', '#1C4F9C'], ['Odds', '#0F766E'], ['Risk', '#5B3E96'], ['Time', '#E8A317'], ['Games', '#B42318'], ['Policy', '#121417']];
+const Q = {
+ Choosing: [
+  ['Which axiom rules out a money pump?', 'Transitivity.'],
+  ['Adding an option nobody chooses changes the shares of the other two. What benchmark condition fails, and what is the effect called if the new option is dominated by one target?', 'Regularity fails; the decoy (attraction) effect.'],
+  ['v(x) = x for gains, 2x for losses. Value of a 50:50 bet to win $30 or lose $20?', '0.5(30) + 0.5(-40) = -5. Reject.']],
+ Odds: [
+  ['Mutually exclusive events A and B, P(A) = 0.2, P(B) = 0.3. P(A or B)?', '0.5'],
+  ['Name the fallacy: "After six reds, black is due."', "Gambler's fallacy."],
+  ['1% prevalence, 90% sensitivity, 10% false positive rate. P(disease | positive)?', '9 / (9 + 99) = about 8%.']],
+ Risk: [
+  ['Which rule picks the act with the best worst outcome?', 'Maximin.'],
+  ['u(x) = sqrt(x). Certainty equivalent of a 50:50 gamble over $0 and $100?', 'EU = 5, so CE = $25.'],
+  ['In the Ellsberg urn, people choose I (red) and IV (black or yellow). What does this reveal?', 'Ambiguity aversion; no single probability belief fits.']],
+ Time: [
+  ['PV of $110 in one year at r = 10%?', '$100.'],
+  ['delta = 0.5. Value today of utility stream (0, 0, 8)?', '0.25 x 8 = 2.'],
+  ['beta = 1/2, delta = 1. Today: 6 utiles now or 10 tomorrow? And viewed from yesterday?', 'Today: 6 (6 > 5). From yesterday: 10 (5 > 3). A preference reversal.']],
+ Games: [
+  ['Define Nash equilibrium in one sentence.', 'A strategy profile where each player is best-responding to the others.'],
+  ['What is the mixed equilibrium of matching pennies?', 'Each player plays each side with probability 1/2.'],
+  ['Guess 2/3 of the average. What does a level-2 thinker guess?', 'About 22 (level 0 averages 50, level 1 guesses 33).']],
+ Policy: [
+  ['Nudge, ban or incentive: a 10% tax on sugary drinks?', 'Incentive.'],
+  ['Name the three biases Save More Tomorrow uses.', 'Present bias, loss aversion, inertia (status quo).'],
+  ['What did DellaVigna and Linos (2022) find about nudge-unit trials versus published papers?', 'Much smaller average effects (about 1.4 vs 8.7 percentage points), largely due to publication bias.']]
+};
+let html = cats.map(c => `<div class="h" style="background:${c[1]}">${c[0]}</div>`).join('');
+for (let r = 0; r < 3; r++) html += cats.map(c => `<button data-c="${c[0]}" data-r="${r}">${(r + 1) * 100}</button>`).join('');
+$('board').innerHTML = html;
+document.querySelectorAll('.board button').forEach(b => b.onclick = () => {
+  if (b.classList.contains('used')) return; b.classList.add('used');
+  const [q, a] = Q[b.dataset.c][+b.dataset.r];
+  $('qcat').textContent = `${b.dataset.c} for ${(+b.dataset.r + 1) * 100}`; $('qq').textContent = q; $('qa').textContent = a; $('qa').style.display = 'none'; $('qbox').style.display = 'block';
+});
+$('show').onclick = () => $('qa').style.display = 'block'; $('close').onclick = () => $('qbox').style.display = 'none';
+$('teams').innerHTML = [1,2,3,4,5,6].map(i => `<div class="card amber"><input type="text" value="Team ${i}"><div class="big" id="s${i}">0</div><div class="row"><button class="btn ghost" data-t="${i}" data-d="100">+100</button><button class="btn ghost" data-t="${i}" data-d="-100">&minus;100</button></div></div>`).join('');
+document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { const s = $('s' + b.dataset.t); s.textContent = +s.textContent + +b.dataset.d; });
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Are You Random?</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<div class="tabs">
+  <button data-tab="rand">Are you random?</button>
+  <button data-tab="chain">Chains and plans</button>
+  <button data-tab="linda">Linda</button>
+</div>
+
+<section class="panel" id="rand">
+  <p class="lead">Without flipping a coin, make up a sequence of heads and tails that looks random. Tap H or T, or type into the box. Aim for 50.</p>
+  <div class="row"><button class="btn" id="bH" style="min-width:80px">H</button><button class="btn dark" id="bT" style="min-width:80px">T</button><button class="btn ghost" id="bU">Undo</button><button class="btn ghost" id="bR">Real coin (computer)</button><button class="btn ghost" id="bC">Clear</button></div>
+  <textarea id="seq" rows="2" style="width:100%;font-family:monospace;letter-spacing:2px" placeholder="HTHHT..."></textarea>
+  <div class="row"><button class="btn dark" id="grade">Grade my sequence</button><span class="muted" id="len"></span></div>
+  <div class="grid" id="out" style="display:none">
+    <div class="card brick"><div class="label">Longest run</div><div class="big" id="run"></div><p id="runP" class="muted"></p></div>
+    <div class="card amber"><div class="label">Switches (H to T or T to H)</div><div class="big" id="sw"></div><p id="swP" class="muted"></p></div>
+    <div class="card"><div class="label">Verdict</div><p id="verdict"></p></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="label">Longest run in 10,000 real sequences of your length</div><div class="svgwrap" id="runChart"></div></div>
+</section>
+
+<section class="panel" id="chain">
+  <p class="lead">Each step of a plan is likely to go well. What about all of them? And how likely is it that at least one thing goes wrong?</p>
+  <div class="grid">
+    <div class="card teal">
+      <label>Number of independent steps n: <b id="nv"></b></label><input type="range" id="n" min="1" max="40" value="10">
+      <label>Probability each step goes to plan p: <b id="pv"></b></label><input type="range" id="p" min="0.5" max="0.999" step="0.001" value="0.9">
+      <p>All steps on plan: <span class="big blue" id="all"></span></p>
+      <p>At least one step fails: <span class="big brick" id="one"></span></p>
+      <p class="muted">Sydney Opera House: estimated in 1957 at $7 million for 1963; opened in 1973 at $102 million (Angner Example 5.10).</p>
+    </div>
+    <div class="card"><div class="svgwrap" id="chainChart"></div></div>
+  </div>
+</section>
+
+<section class="panel" id="linda">
+  <div class="card plum">
+    <p>Linda is 31, single, outspoken and very bright. She majored in philosophy. As a student she was deeply concerned with discrimination and social justice, and joined anti-nuclear demonstrations.</p>
+    <p><b>Which is more probable?</b></p>
+    <div class="choice"><button id="la">Linda is a bank teller.</button><button id="lb">Linda is a bank teller and is active in the feminist movement.</button></div>
+    <p id="lmsg"></p>
+  </div>
+</section>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(4, 'Are You Random?');
+Lab.tabs();
+const $ = id => document.getElementById(id);
+const clean = () => $('seq').value.toUpperCase().replace(/[^HT]/g, '');
+const setSeq = s => { $('seq').value = s; $('len').textContent = s.length + ' flips'; };
+$('bH').onclick = () => setSeq(clean() + 'H'); $('bT').onclick = () => setSeq(clean() + 'T');
+$('bU').onclick = () => setSeq(clean().slice(0, -1)); $('bC').onclick = () => setSeq('');
+$('bR').onclick = () => setSeq(Array.from({ length: 50 }, () => Math.random() < .5 ? 'H' : 'T').join(''));
+$('seq').addEventListener('input', () => $('len').textContent = clean().length + ' flips');
+const longest = s => { let b = 1, c = 1; for (let i = 1; i < s.length; i++) { c = s[i] === s[i - 1] ? c + 1 : 1; b = Math.max(b, c); } return s.length ? b : 0; };
+const switches = s => { let k = 0; for (let i = 1; i < s.length; i++) if (s[i] !== s[i - 1]) k++; return k; };
+$('grade').onclick = () => {
+  const s = clean(), n = s.length;
+  if (n < 20) { $('len').textContent = 'Please enter at least 20 flips.'; return; }
+  const sims = 10000, runs = [], sws = [];
+  for (let k = 0; k < sims; k++) { const r = Array.from({ length: n }, () => Math.random() < .5 ? 'H' : 'T').join(''); runs.push(longest(r)); sws.push(switches(r)); }
+  const L = longest(s), S = switches(s);
+  const pRunLE = runs.filter(r => r <= L).length / sims, pSwGE = sws.filter(x => x >= S).length / sims;
+  $('out').style.display = 'grid'; $('run').textContent = L; $('sw').textContent = S + ' of ' + (n - 1);
+  $('runP').textContent = `Only ${Lab.pct(pRunLE)} of real sequences have a longest run this short or shorter.`;
+  $('swP').textContent = `A fair coin switches about half the time (${Lab.fmt((n - 1) / 2, 0)}). ${Lab.pct(pSwGE)} of real sequences switch this often or more.`;
+  const fake = pRunLE < 0.1 || pSwGE < 0.1;
+  $('verdict').innerHTML = fake ? '<span class="bad">Probably made up.</span> Your sequence switches too often and avoids long streaks. People expect small samples to look balanced: the law of small numbers.' : '<span class="ok">Plausibly random.</span> Your sequence has the streaks a real coin produces. Well done, or did you use the computer button?';
+  const maxR = Math.max(...runs, L), counts = Array(maxR).fill(0); runs.forEach(r => counts[r - 1]++);
+  Lab.bars($('runChart'), { labels: counts.map((_, i) => String(i + 1)), values: counts.map(c => 100 * c / sims), colors: counts.map((_, i) => i + 1 === L ? Lab.C.brick : Lab.C.amber), vfmt: v => v >= 1 ? Lab.fmt(v, 0) + '%' : '', ylabel: '% of real sequences', xlabel: 'longest run (red bar: yours)' });
+};
+
+function chain() {
+  const n = +$('n').value, p = +$('p').value;
+  $('nv').textContent = n; $('pv').textContent = p.toFixed(3);
+  $('all').textContent = Lab.pct(Math.pow(p, n)); $('one').textContent = Lab.pct(1 - Math.pow(p, n));
+  const pts = Array.from({ length: 40 }, (_, i) => [i + 1, Math.pow(p, i + 1)]);
+  Lab.line($('chainChart'), { series: [{ pts, color: Lab.C.blue, label: 'all on plan' }, { pts: pts.map(([x, y]) => [x, 1 - y]), color: Lab.C.brick, label: 'at least one fails' }], ymin: 0, ymax: 1, xlabel: 'number of steps', ylabel: 'probability', points: [{ x: n, y: Math.pow(p, n), color: Lab.C.blue }] });
+}
+['n','p'].forEach(id => $(id).addEventListener('input', chain)); chain();
+
+$('la').onclick = () => $('lmsg').innerHTML = '<span class="ok">Correct.</span> Every feminist bank teller is a bank teller, so P(teller and feminist) cannot exceed P(teller).';
+$('lb').onclick = () => $('lmsg').innerHTML = '<span class="bad">You are in good company:</span> about 85% chose this in the original study. But it breaks the conjunction rule: P(A and B) &le; P(A). The description is <i>representative</i> of a feminist, which makes the detailed story feel more likely.';
+</script>
+</body>
+</html>
