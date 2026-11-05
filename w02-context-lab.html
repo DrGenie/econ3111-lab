@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Context Lab</title>
+<title>Week 2: Choice under Certainty</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
-<p class="lead">In the rational benchmark, the menu, the order and the wording should not matter. Three short experiments show when they do.</p>
+<p class="lead">In the rational benchmark, the menu of options, the presentation and the wording should not affect choice. The four activities below show when they do.</p>
 <div class="tabs">
   <button data-tab="decoy">1. Decoy builder</button>
   <button data-tab="anchor">2. Your anchor</button>
   <button data-tab="accounts">3. Mental accounts</button>
+  <button data-tab="sunk">4. Sunk costs</button>
 </div>
 
 <section class="panel" id="decoy">
@@ -67,7 +68,7 @@
       <p class="muted">Use negative numbers for losses. Value function: v(x) = x<sup>&alpha;</sup> for gains, &minus;&lambda;(&minus;x)<sup>&alpha;</sup> for losses.</p>
     </div>
     <div class="card">
-      <div class="label">Thaler's verdict</div>
+      <div class="label">Thaler's rules of mental accounting</div>
       <p>Segregated: v(x<sub>1</sub>) + v(x<sub>2</sub>) = <b id="seg"></b></p>
       <p>Integrated: v(x<sub>1</sub> + x<sub>2</sub>) = <b id="int"></b></p>
       <p class="big" id="verdict"></p>
@@ -75,10 +76,15 @@
     </div>
   </div>
 </section>
+
+<section class="panel" id="sunk">
+<p class="lead">A <b>sunk cost</b> is a cost that has been incurred and cannot be recovered. In the rational benchmark, only future costs and benefits, including <b>opportunity costs</b>, are relevant. For each case, choose the answer consistent with rational choice.</p>
+<div id="sunkquiz"></div>
+</section>
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(2, 'Context Lab');
+Lab.header(2, 'Choice under Certainty');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 
@@ -114,7 +120,7 @@ $('done').onclick = () => {
   const w = goods.map((_, i) => +$('w' + i).value || 0);
   Lab.bars($('anchorChart'), { labels: ['Your anchor', 'Wine', 'Chocolates', 'Mouse', 'Textbook'], values: [d, ...w], colors: [Lab.C.slate, Lab.C.amber, Lab.C.amber, Lab.C.amber, Lab.C.amber], vfmt: v => '$' + Lab.fmt(v, 0), ylabel: '$' });
   const close = w.filter(v => Math.abs(v - d) <= 15).length;
-  $('anchorMsg').innerHTML = `${close} of your 4 prices are within $15 of your anchor. One person cannot show an anchoring effect; a class can. Send <b>anchor ${d}, wine ${w[0]}</b> to the Live Lab.`;
+  $('anchorMsg').innerHTML = `${close} of your 4 prices are within $15 of your anchor. An anchoring effect is a pattern across many people, so it cannot be shown with one person's answers. Give the lecturer your anchor (${d}) and your price for the wine (${w[0]}) for the class chart.`;
 };
 
 // ---------- mental accounting ----------
@@ -127,12 +133,22 @@ function acct() {
   $('verdict').textContent = segBetter ? 'Segregate' : (Math.abs(s - i) < 1e-9 ? 'Indifferent' : 'Integrate');
   $('verdict').className = 'big ' + (segBetter ? 'leaf' : 'blue');
   let why = '';
-  if (x1 > 0 && x2 > 0) why = 'Two gains: concavity means two small wins feel better than one big one. Wrap presents separately.';
-  else if (x1 < 0 && x2 < 0) why = 'Two losses: convexity means one big loss hurts less than two small ones. Pay one bill, not two.';
-  else why = 'Mixed: if the gain is small relative to the loss, segregating it gives a "silver lining". If the gain is large, integrating it cancels the loss.';
+  if (x1 > 0 && x2 > 0) why = 'Two gains: because v is concave for gains, two separate gains are valued more than one combined gain. Segregate gains.';
+  else if (x1 < 0 && x2 < 0) why = 'Two losses: because v is convex for losses, one combined loss is less painful than two separate losses. Integrate losses.';
+  else why = 'Mixed gain and loss: if the gain is small relative to the loss, segregate it (the "silver lining"). If the gain is large, integrate it so that it cancels the loss.';
   $('why').textContent = why;
 }
 ['x1','x2','lam','alp'].forEach(id => $(id).addEventListener('input', acct)); acct();
+
+// ---------- sunk costs ----------
+Lab.quiz($('sunkquiz'), [
+ { q: 'You paid $25 for a concert ticket. On the night you feel unwell and would rather stay home. A friend says you must go because you paid for the ticket. What should you do?', opts: ['Go, because otherwise the $25 is wasted', 'Compare only the enjoyment of going tonight with the enjoyment of staying home; the $25 is sunk', 'Go only if the ticket cost more than $50'], a: 1, why: 'The $25 is spent whatever you do, so it should not affect the decision.' },
+ { q: 'A firm has spent $8 million developing a product. Completing it will cost $3 million more, and the expected revenue is $2 million. Should the firm complete it?', opts: ['Yes, because $8 million has already been invested', 'No, because the additional cost ($3 million) exceeds the additional revenue ($2 million)', 'Yes, because total revenue is positive'], a: 1, why: 'Only the future cost ($3m) and future revenue ($2m) matter. Completing the product loses $1m.' },
+ { q: 'You bought a non-refundable gym membership for the year. The gym is now 40 minutes away after a move, and a free gym is next to your new home. Which gym should you use?', opts: ['The old gym, to get value from the membership', 'Whichever gym gives the better workout after counting travel time; the membership fee is sunk', 'Neither, to avoid wasting money'], a: 1, why: 'The membership fee cannot be recovered. The relevant comparison includes the time cost of travel.' },
+ { q: 'A student has spent two years in a degree she now dislikes. Another degree would suit her better. Which consideration is relevant?', opts: ['The two years already spent', 'Her future costs and benefits from each degree, including any credit transferred', 'The fees already paid'], a: 1, why: 'Past years and fees are sunk. Credit that can be transferred is a future benefit and is relevant.' },
+ { q: 'A government has spent $10 billion on a project. An independent review estimates that the remaining cost exceeds the remaining benefit. A minister argues that stopping would waste the $10 billion. This argument is an example of:', opts: ['Opportunity cost reasoning', 'The sunk cost fallacy', 'Loss aversion in final wealth'], a: 1, why: 'The $10 billion cannot be recovered. The decision should depend on the remaining costs and benefits.' },
+ { q: 'You won a free ticket to a game. On the day, someone offers you $60 for it. You would not pay more than $40 to attend. What is the opportunity cost of attending?', opts: ['$0, because the ticket was free', '$40', '$60, the money you give up by not selling'], a: 2, why: 'Attending means forgoing $60. Since you value attending at no more than $40, you should sell.' }
+], { color: 'amber' });
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Game Lab</title>
+<title>Week 9: Strategic Interaction</title>
 <link rel="stylesheet" href="assets/style.css">
 <style>.pm input{width:52px;text-align:center}.pm td{text-align:center}.ne{background:rgba(232,163,23,.25)}</style>
 </head>
@@ -15,9 +15,9 @@
 </div>
 
 <section class="panel" id="solver">
-  <p class="lead">Type the payoffs (Row's payoff first, Column's second). The Lab finds best responses, dominant strategies and every Nash equilibrium.</p>
+  <p class="lead">Enter the payoffs (Row's payoff first, Column's second). The laboratory finds best responses, dominant strategies and every Nash equilibrium.</p>
   <div class="row"><span class="label">Presets</span>
-    <button class="btn ghost" data-g="pd">Prisoners' dilemma</button><button class="btn ghost" data-g="coord">Coffee shops</button><button class="btn ghost" data-g="bos">Battle of the sexes</button><button class="btn ghost" data-g="chicken">Chicken</button><button class="btn ghost" data-g="stag">Stag hunt</button><button class="btn ghost" data-g="pennies">Matching pennies</button>
+    <button class="btn ghost" data-g="pd">Prisoners' dilemma</button><button class="btn ghost" data-g="coord">Coordination game (driving)</button><button class="btn ghost" data-g="bos">Battle of the sexes</button><button class="btn ghost" data-g="chicken">Chicken</button><button class="btn ghost" data-g="stag">Stag hunt</button><button class="btn ghost" data-g="pennies">Matching pennies</button>
   </div>
   <div class="grid">
     <div class="card"><table class="t pm" id="pm"></table></div>
@@ -26,7 +26,7 @@
 </section>
 
 <section class="panel" id="ipd">
-  <p class="lead">Payoffs per round: both cooperate 3 each; both defect 1 each; a defector against a cooperator gets 5, the cooperator 0. Play 10 rounds against a hidden strategy, then run a full tournament.</p>
+  <p class="lead">Payoffs per round: both cooperate 3 each; both defect 1 each; a defector against a cooperator gets 5, the cooperator 0. Play 10 rounds against an unidentified computer strategy, then run a tournament between strategies.</p>
   <div class="grid">
     <div class="card teal">
       <div class="label">Play 10 rounds</div>
@@ -46,11 +46,11 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(9, 'Game Lab');
+Lab.header(9, 'Strategic Interaction: Game Theory');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 const G = { pd: [[3,3],[0,5],[5,0],[1,1]], coord: [[1,1],[0,0],[0,0],[1,1]], bos: [[2,1],[0,0],[0,0],[1,2]], chicken: [[2,2],[1,3],[3,1],[0,0]], stag: [[3,3],[0,2],[2,0],[2,2]], pennies: [[1,-1],[-1,1],[-1,1],[1,-1]] };
-const lab = { pd: ['Cooperate','Defect'], coord: ['Starbucks',"Peet's"], bos: ['Football','Ballet'], chicken: ['Swerve','Straight'], stag: ['Stag','Hare'], pennies: ['Heads','Tails'] };
+const lab = { pd: ['Cooperate','Defect'], coord: ['Left','Right'], bos: ['Concert','Match'], chicken: ['Swerve','Straight'], stag: ['Stag','Hare'], pennies: ['Heads','Tails'] };
 let names = ['U','D','L','R'];
 function table(g) {
   const [a,b,c,d] = g;

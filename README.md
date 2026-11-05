@@ -1,39 +1,39 @@
-# ECON3111 Lab
+# ECON3111 Online Laboratory
 
-Interactive simulations for ECON3111 Behavioural Economics (University of Newcastle, 2027). Plain HTML, CSS and JavaScript: no build step, no external libraries, nothing sent to a server.
+Interactive simulations, experiments and quizzes for ECON3111 Behavioural Economics (University of Newcastle, 2027). Plain HTML, CSS and JavaScript: no build step, no external libraries, and nothing is sent to a server.
 
-## Deploy on GitHub Pages (about 5 minutes)
+## Deploying on GitHub Pages
 
-1. On GitHub (account `DrGenie`), create a new public repository named **`econ3111-lab`**.
-2. Upload everything in this folder (keep the `assets/` and `podcast/` folders and the `.nojekyll` file).
-3. In the repository: **Settings > Pages > Build and deployment > Deploy from a branch**, branch `main`, folder `/ (root)`. Save.
-4. After a minute the site is live at `https://drgenie.github.io/econ3111-lab/`.
+1. On GitHub (account `DrGenie`), create a public repository named **`econ3111-lab`**.
+2. Upload everything in this folder, keeping the `assets/` and `podcast/` folders and the `.nojekyll` file.
+3. In the repository, open **Settings > Pages > Build and deployment > Deploy from a branch**, select branch `main` and folder `/ (root)`, and save.
+4. After about a minute the site is available at `https://drgenie.github.io/econ3111-lab/`.
 
-All QR codes in the 2027 slides point to that address. If your user site uses a custom domain (for example mesfingenie.com), GitHub will redirect the `github.io` address to `mesfingenie.com/econ3111-lab/`, so the QR codes still work. If you use a different repository name, find and replace `drgenie.github.io/econ3111-lab` in the `.tex` files and recompile.
+All QR codes in the 2027 slides point to this address. If a different repository name or address is used, replace `drgenie.github.io/econ3111-lab` in the `.tex` files and recompile the decks.
 
 ## Pages
 
-| Week | Page | What students do |
+| Week | Page | Activities |
 |---|---|---|
-| 1 | `w01-money-pump.html` | Pairwise choices; completeness and transitivity check; money pump; utility representation |
-| 2 | `w02-context-lab.html` | Decoy builder with simulated shoppers; anchoring task; integrate vs segregate calculator |
-| 3 | `w03-bayes-machine.html` | 1,000-person icon array with presets (AI detector, mammogram, cab, fraud); Monty Hall play and simulation |
-| 4 | `w04-are-you-random.html` | Randomness grader; conjunction and planning calculator; Linda |
-| 5 | `w05-risk-lab.html` | Holt and Laury risk task; EU, CE and risk premium with chosen utility; St Petersburg simulator |
-| 6 | `w06-prospect-studio.html` | Value and weighting curves; prospect evaluator; fourfold pattern; Allais and Ellsberg check |
-| 7 | `w07-time-machine.html` | Titration of discount rates (detects present bias); true cost of credit; exponential vs beta-delta |
-| 8 | `w08-future-you.html` | Naive, sophisticated and exponential movie game; cake reversal; peak-end rule |
-| 9 | `w09-game-lab.html` | 2x2 solver (pure and mixed equilibria, dominance); repeated PD; Axelrod tournament |
-| 10 | `w10-fairness-lab.html` | Ultimatum against five hidden inequality-averse bots; beauty contest by level-k; public goods with punishment |
-| 11 | `w11-nudge-studio.html` | Choice architecture for 10,000 simulated students; dark pattern quiz |
-| 12 | `w12-final-boss.html` | Six-category quiz board with team scores |
-| | `live-lab.html` | For the lecturer: paste class answers to show histograms, the number-game winner, anchoring by group, split-room votes |
-| | `podcast.html` | All 13 episodes with transcripts; plays `podcast/audio/epXX.mp3` once uploaded |
+| 1 | `w01-money-pump.html` | Completeness and transitivity of your own preferences; the money pump; utility representation; descriptive or normative quiz |
+| 2 | `w02-context-lab.html` | Decoy effect with simulated consumers; anchoring; mental accounting; six sunk cost and opportunity cost cases |
+| 3 | `w03-bayes-machine.html` | Bayes' rule with 1,000 people shown as squares (presets: AI detection, mammography, taxi cab, fraud); the Monty Hall problem |
+| 4 | `w04-are-you-random.html` | Randomness test; conjunctions and disjunctions; the Linda problem; identify the heuristic (eight cases) |
+| 5 | `w05-risk-lab.html` | Deal or No Deal; Holt and Laury task; certainty equivalents and risk premiums; St Petersburg simulation |
+| 6 | `w06-prospect-studio.html` | Value and weighting functions; prospect evaluation; fourfold pattern; Allais and Ellsberg problems |
+| 7 | `w07-time-machine.html` | Estimating the discount rate; the cost of short-term credit; exponential and hyperbolic discounting |
+| 8 | `w08-future-you.html` | Which film to miss (naive, sophisticated and time consistent); the cake example; the peak-end rule |
+| 9 | `w09-game-lab.html` | Two-by-two game solver (dominance, pure and mixed equilibria); repeated prisoners' dilemma and tournament |
+| 10 | `w10-fairness-lab.html` | Ultimatum game against five responders; beauty contest with level-k players; public goods game with punishment |
+| 11 | `w11-nudge-studio.html` | Designing a nudge for 10,000 simulated students; nudge, incentive or mandate quiz; dark patterns |
+| 12 | `w12-revision-quiz.html` | Twenty-two revision questions with explanations and results by week |
+| | `live-lab.html` | For the lecturer: enter class answers to display histograms, the number game winner, anchoring by group and split-class comparisons |
+| | `podcast.html` | Thirteen course episodes with audio and transcripts, and links to further episodes |
 
-## Adding the podcast audio
+## Podcast audio
 
-Record the scripts in `../podcast/episodes/`, export as `ep00.mp3` to `ep12.mp3`, and upload them to `podcast/audio/`. Until a file exists, the page shows the transcript.
+The thirteen episodes (`podcast/audio/ep00.mp3` to `ep12.mp3`) were generated with two synthetic voices from the scripts in `../podcast/ECON3111_Podcast_Scripts_2027.md`. No recording is needed. To change an episode, edit the script and regenerate the audio, or replace the mp3 file with a recording of the same name.
 
 ## Notes
 
-Simulated populations in the Context Lab, Fairness Lab and Nudge Studio use illustrative parameters chosen for teaching. They show mechanisms, not estimates, and the pages say so.
+The simulated populations (decoy effect, ultimatum responders, public goods players, nudge design) use illustrative parameters chosen for teaching. They show mechanisms, not estimates, and the pages say so.

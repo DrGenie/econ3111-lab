@@ -7,8 +7,8 @@ const Lab = (() => {
     const h = document.createElement('header');
     h.className = 'top';
     h.innerHTML = `<a href="index.html"><img src="assets/uon_h_white.svg" alt="University of Newcastle"></a>
-      <div><div class="wk">ECON3111 LAB${week !== '' ? ' · WEEK ' + week : ''}</div><h1>${title}</h1></div>
-      <nav><a href="index.html">All labs</a><a href="podcast.html">Podcast</a></nav>`;
+      <div><div class="wk">ECON3111 ONLINE LABORATORY${week !== '' ? ' · WEEK ' + week : ''}</div><h1>${title}</h1></div>
+      <nav><a href="index.html">All weeks</a><a href="podcast.html">Podcast</a></nav>`;
     document.body.prepend(h);
     const f = document.createElement('footer');
     f.innerHTML = 'ECON3111 Behavioural Economics, Newcastle Business School, University of Newcastle. Teaching simulations; nothing you enter leaves your browser.';
@@ -118,5 +118,27 @@ const Lab = (() => {
     const labels = counts.map((_, i) => fmt(lo + i * w, 0));
     return bars(el, { labels, values: counts, vfmt: v => v || '', ...o });
   }
-  return { C, header, tabs, fmt, money, pct, rand, store, line, bars, hist, svg, add };
+
+  // ---------- Multiple choice quiz ----------
+  // qs: [{q, opts:[...], a: index, why}]; el: container element
+  function quiz(el, qs, o = {}) {
+    let score = 0, answered = 0;
+    el.innerHTML = qs.map((x, i) => `<div class="card ${o.color || 'blue'} quizq" style="margin-bottom:12px">
+      <div class="label">Question ${i + 1} of ${qs.length}</div><p>${x.q}</p>
+      <div class="opts">${x.opts.map((t, j) => `<button class="qopt" data-i="${i}" data-j="${j}">${String.fromCharCode(65 + j)}. ${t}</button>`).join('')}</div>
+      <div class="qfb" id="qfb${i}"></div></div>`).join('') + `<div class="card leaf" id="qscore" style="display:none"></div>`;
+    el.querySelectorAll('.qopt').forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.i, j = +b.dataset.j, x = qs[i];
+      const box = b.closest('.quizq');
+      if (box.dataset.done) return;
+      box.dataset.done = 1; answered++;
+      const right = j === x.a; if (right) score++;
+      box.querySelectorAll('.qopt').forEach(bb => { bb.disabled = true; if (+bb.dataset.j === x.a) bb.classList.add('right'); });
+      if (!right) b.classList.add('wrong');
+      document.getElementById('qfb' + i).innerHTML = `<p><span class="${right ? 'ok' : 'bad'}">${right ? 'Correct.' : 'Incorrect.'}</span> The answer is ${String.fromCharCode(65 + x.a)}. ${x.why}</p>`;
+      if (o.onAnswer) o.onAnswer(i, right);
+      if (answered === qs.length) { const sc = document.getElementById('qscore'); sc.style.display = 'block'; sc.innerHTML = `<div class="label">Result</div><p class="big blue">${score} / ${qs.length}</p>` + (o.done ? o.done(score) : ''); }
+    }));
+  }
+  return { quiz, C, header, tabs, fmt, money, pct, rand, store, line, bars, hist, svg, add };
 })();

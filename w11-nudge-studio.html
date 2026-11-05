@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nudge Studio</title>
+<title>Week 11: Choice Architecture</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
-  <button data-tab="studio">Nudge Studio</button>
-  <button data-tab="dark">Dark pattern spotter</button>
+  <button data-tab="studio">Designing a nudge</button>
+  <button data-tab="classify">Nudge, incentive or mandate?</button>
+  <button data-tab="dark">Dark patterns</button>
 </div>
 
 <section class="panel" id="studio">
-  <p class="lead">10,000 simulated students decide whether to get a free flu vaccine on campus. Each has a benefit, a hassle cost, present bias and limited attention. Change the choice architecture and watch uptake. Nothing here bans or pays anyone: these are nudges and sludge.</p>
+  <p class="lead">10,000 simulated students decide whether to get a free flu vaccine on campus. Each has a benefit, a hassle cost, present bias and limited attention. Change the choice architecture and observe the effect on uptake. No option is banned and no one is paid: these are nudges (and sludge).</p>
   <div class="grid">
     <div class="card plum">
       <div class="label">Choice architecture</div>
@@ -35,15 +36,20 @@
   </div>
 </section>
 
+<section class="panel" id="classify">
+<p class="lead">A <b>nudge</b> changes behaviour without forbidding options or significantly changing economic incentives. An <b>incentive</b> changes prices or payoffs. A <b>mandate</b> requires or forbids an action. Classify each policy.</p>
+<div id="cquiz"></div>
+</section>
+
 <section class="panel" id="dark">
-  <p class="lead">Name the trick. From 1 July 2027, Australia's unfair trading practices law targets many of these.</p>
+  <p class="lead">Identify the dark pattern in each screen. From 1 July 2027, Australia's unfair trading practices law prohibits many of these practices.</p>
   <div id="dp"></div>
   <p id="dscore" class="big"></p>
 </section>
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(11, 'Nudge Studio');
+Lab.header(11, 'Choice Architecture');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 // fixed population (seeded so results do not jump)
@@ -90,6 +96,19 @@ document.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
   $('f' + i).innerHTML = ok ? '<span class="ok">Correct.</span>' : `<span class="bad">Not quite:</span> ${Q[i][1]}.`;
   if (answered === Q.length) $('dscore').textContent = `${score} / ${Q.length}`;
 });
+
+Lab.quiz(document.getElementById('cquiz'), [
+ ['Employees are enrolled in a retirement savings plan automatically, and may opt out at any time.', 0, 'The default changes, but every option remains and no price changes.'],
+ ['A tax of 20% is placed on sugar-sweetened drinks.', 1, 'The price of an option changes.'],
+ ['Social media platforms must prevent people under 16 from holding accounts.', 2, 'An option is removed for a group of people.'],
+ ['Letters to taxpayers state that nine out of ten people pay their tax on time.', 0, 'A social norm message; no option or price changes.'],
+ ['A council fines residents who put recycling in the general waste bin.', 1, 'A fine changes the payoff of an action.'],
+ ['Cafeterias place fruit at eye level and desserts further back.', 0, 'The arrangement of options changes; all remain available at the same price.'],
+ ['Wearing a seatbelt in a car is compulsory.', 2, 'The law requires the action.'],
+ ['Students who submit a draft early receive a bonus mark.', 1, 'A reward changes the payoff of submitting early.'],
+ ['A bank sends a text message reminder two days before a loan repayment is due.', 0, 'A reminder; no option or price changes.'],
+ ['Credit card statements must show how long it will take to repay the balance by making only the minimum payment.', 0, 'A disclosure that makes information salient. (The firm is mandated to show it, but for the consumer it is a nudge.)']
+].map(d => ({ q: d[0], opts: ['Nudge', 'Incentive', 'Mandate'], a: d[1], why: d[2] })), { color: 'plum' });
 </script>
 </body>
 </html>

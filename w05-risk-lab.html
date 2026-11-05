@@ -3,21 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Risk Lab</title>
+<title>Week 5: Choice under Risk</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
+  <button data-tab="dond">Deal or No Deal</button>
   <button data-tab="hl">Your risk attitude</button>
   <button data-tab="ce">EU and certainty equivalent</button>
   <button data-tab="stp">St Petersburg</button>
 </div>
 
+<section class="panel" id="dond">
+  <p class="lead">A short version of the television game (Angner, Exercise 6.14). Ten closed cases contain the amounts below. Choose one case to keep. Then open the other cases in rounds. After each round the banker offers a sure amount to stop. Compare each offer with the <b>expected value</b> of the cases still closed.</p>
+  <div class="grid">
+    <div class="card amber">
+      <div class="label" id="dstage">Step 1: choose your case</div>
+      <div id="cases" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0"></div>
+      <p id="dmsg"></p>
+      <div class="row"><button class="btn" id="deal" disabled>Deal</button><button class="btn dark" id="nodeal" disabled>No deal</button><button class="btn ghost" id="dreset">New game</button></div>
+    </div>
+    <div class="card">
+      <div class="label">Amounts still in play</div>
+      <div id="board" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:8px 0"></div>
+      <table class="t"><thead><tr><th>Round</th><th>Expected value</th><th>Offer</th><th>Offer / EV</th><th>Your decision</th></tr></thead><tbody id="dhist"></tbody></table>
+      <p class="muted" id="dsum"></p>
+    </div>
+  </div>
+</section>
+
 <section class="panel" id="hl">
-  <p class="lead">Holt and Laury's (2002) ten-row task. For each row, pick the option you prefer. Most people start with A and switch to B somewhere.</p>
+  <p class="lead">Holt and Laury's (2002) ten-row task. For each row, choose the option you prefer. Most people choose A in the first rows and switch to B at some point.</p>
   <div class="card"><table class="t" id="hlt"></table>
-  <div class="row"><button class="btn dark" id="hlgo">Score me</button></div>
+  <div class="row"><button class="btn dark" id="hlgo">Show my result</button></div>
   <div id="hlout"></div></div>
 </section>
 
@@ -43,7 +62,7 @@
 </section>
 
 <section class="panel" id="stp">
-  <p class="lead">Flip a coin until the first head. Head on flip n pays $2<sup>n</sup>. The expected value is infinite. How much would you pay to play?</p>
+  <p class="lead">A fair coin is tossed until the first head. If the first head occurs on toss n, the prize is $2<sup>n</sup>. The expected value is infinite. How much would you pay to play?</p>
   <div class="grid">
     <div class="card amber">
       <div class="row">Games to play <input type="number" id="ng" value="1000" style="width:110px"><button class="btn dark" id="play">Play</button></div>
@@ -57,7 +76,7 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(5, 'Risk Lab');
+Lab.header(5, 'Choice under Risk and Uncertainty');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 // ---------- Holt-Laury ----------
@@ -67,12 +86,12 @@ for (let i = 1; i <= 10; i++) {
   hlrows += `<tr><td>${i}</td><td><label><input type="radio" name="r${i}" value="A" ${i <= 4 ? 'checked' : ''}> A: ${Math.round(p*100)}% $2.00, ${Math.round(100-p*100)}% $1.60</label></td><td><label><input type="radio" name="r${i}" value="B" ${i > 4 ? 'checked' : ''}> B: ${Math.round(p*100)}% $3.85, ${Math.round(100-p*100)}% $0.10</label></td></tr>`;
 }
 $('hlt').innerHTML = '<tr><th>Row</th><th>Option A (safer)</th><th>Option B (riskier)</th></tr>' + hlrows;
-const ranges = ['r < -0.95 (highly risk loving)','r < -0.95 (highly risk loving)','-0.95 < r < -0.49 (very risk loving)','-0.49 < r < -0.15 (risk loving)','-0.15 < r < 0.15 (about risk neutral)','0.15 < r < 0.41 (slightly risk averse)','0.41 < r < 0.68 (risk averse)','0.68 < r < 0.97 (very risk averse)','0.97 < r < 1.37 (highly risk averse)','1.37 < r (stay in bed)','row 10 safe: check your answers'];
+const ranges = ['r < -0.95 (highly risk seeking)','r < -0.95 (highly risk seeking)','-0.95 < r < -0.49 (very risk seeking)','-0.49 < r < -0.15 (risk seeking)','-0.15 < r < 0.15 (about risk neutral)','0.15 < r < 0.41 (slightly risk averse)','0.41 < r < 0.68 (risk averse)','0.68 < r < 0.97 (very risk averse)','0.97 < r < 1.37 (highly risk averse)','1.37 < r (extremely risk averse)','Option A in row 10 is dominated by option B: please review your choices'];
 $('hlgo').onclick = () => {
   const ch = Array.from({ length: 10 }, (_, i) => (document.querySelector(`input[name=r${i+1}]:checked`) || {}).value);
   const safe = ch.filter(c => c === 'A').length;
   const firstB = ch.indexOf('B'); const consistent = firstB < 0 || ch.slice(firstB).every(c => c === 'B');
-  $('hlout').innerHTML = `<p>You chose <b>${safe}</b> safe options. A risk-neutral person chooses 4.</p>
+  $('hlout').innerHTML = `<p>You chose <b>${safe}</b> safe options. A risk neutral person chooses 4.</p>
    <p>Implied CRRA coefficient range: <b>${ranges[Math.min(safe, 10)] || ''}</b></p>
    ${consistent ? '' : '<p class="bad">You switched back and forth. Many people do, but a consistent expected-utility maximiser switches at most once.</p>'}
    <p class="muted">Row 10 is a check: B pays $3.85 for sure, so everyone should choose B there.</p>`;
@@ -105,6 +124,55 @@ $('play').onclick = () => {
   $('avg').textContent = Lab.money(sum / n); $('maxw').textContent = Lab.money(mx, 0);
   Lab.line($('schart'), { series: [{ pts, color: Lab.C.amber, label: 'running average payoff' }], xlabel: 'games', ylabel: '$ per game' });
 };
+
+// ---------- Deal or No Deal ----------
+(() => {
+  const AM = [1, 10, 100, 500, 1000, 5000, 10000, 50000, 100000, 400000];
+  const ROUNDS = [3, 2, 2, 1], FRAC = [0.4, 0.55, 0.7, 0.85];
+  let vals, mine, open, round, toOpen, over, hist;
+  const el = id => document.getElementById(id);
+  const ev = () => { const c = vals.filter((_, i) => !open[i]); return c.reduce((a, b) => a + b, 0) / c.length; };
+  function start() {
+    vals = [...AM].sort(() => Math.random() - 0.5); mine = null; open = Array(10).fill(false); round = 0; over = false; hist = [];
+    el('dstage').textContent = 'Step 1: choose your case'; el('dmsg').textContent = 'Click a case to keep it until the end.';
+    el('deal').disabled = el('nodeal').disabled = true; el('dhist').innerHTML = ''; el('dsum').textContent = ''; draw();
+  }
+  function draw() {
+    el('cases').innerHTML = vals.map((v, i) => `<button class="qopt" data-i="${i}" style="text-align:center;${i === mine ? 'border:2px solid var(--amber)' : ''}" ${open[i] || over ? 'disabled' : ''}>${open[i] ? Lab.money(v, 0) : 'Case ' + (i + 1) + (i === mine ? ' (yours)' : '')}</button>`).join('');
+    el('cases').querySelectorAll('button').forEach(b => b.onclick = () => pick(+b.dataset.i));
+    const remaining = AM.filter(a => vals.some((v, i) => v === a && !open[i]));
+    el('board').innerHTML = AM.map(a => `<span style="padding:3px 8px;background:var(--mist);${remaining.includes(a) ? '' : 'opacity:.3;text-decoration:line-through'}">${Lab.money(a, 0)}</span>`).join('');
+  }
+  function pick(i) {
+    if (over) return;
+    if (mine === null) { mine = i; toOpen = ROUNDS[0]; el('dstage').textContent = 'Round 1'; el('dmsg').textContent = `Open ${toOpen} cases.`; draw(); return; }
+    if (i === mine || open[i] || toOpen <= 0) return;
+    open[i] = true; toOpen--; draw();
+    if (toOpen > 0) { el('dmsg').textContent = `Open ${toOpen} more case${toOpen > 1 ? 's' : ''}.`; return; }
+    const e = ev(), offer = Math.round(FRAC[round] * e / 10) * 10;
+    hist.push({ e, offer });
+    el('dmsg').innerHTML = `Expected value of the closed cases: <b>${Lab.money(e, 0)}</b>. The banker offers <b>${Lab.money(offer, 0)}</b>. Deal or no deal?`;
+    el('deal').disabled = el('nodeal').disabled = false;
+  }
+  function row(h, d) { return `<tr><td>${hist.indexOf(h) + 1}</td><td>${Lab.money(h.e, 0)}</td><td>${Lab.money(h.offer, 0)}</td><td>${Lab.pct(h.offer / h.e, 0)}</td><td>${d}</td></tr>`; }
+  el('deal').onclick = () => {
+    const h = hist[hist.length - 1]; over = true; el('dhist').innerHTML += row(h, 'Deal');
+    el('deal').disabled = el('nodeal').disabled = true;
+    el('dmsg').innerHTML = `You accepted ${Lab.money(h.offer, 0)}. Your case contained ${Lab.money(vals[mine], 0)}.`;
+    summary(true); draw();
+  };
+  el('nodeal').onclick = () => {
+    const h = hist[hist.length - 1]; el('dhist').innerHTML += row(h, 'No deal');
+    el('deal').disabled = el('nodeal').disabled = true; round++;
+    if (round >= ROUNDS.length) { over = true; el('dmsg').innerHTML = `You kept your case. It contained <b>${Lab.money(vals[mine], 0)}</b>.`; summary(false); draw(); return; }
+    toOpen = ROUNDS[round]; el('dstage').textContent = 'Round ' + (round + 1); el('dmsg').textContent = `Open ${toOpen} case${toOpen > 1 ? 's' : ''}.`;
+  };
+  function summary(dealt) {
+    const rej = hist.filter((h, i) => !(dealt && i === hist.length - 1));
+    el('dsum').innerHTML = `An expected value maximiser rejects every offer below the expected value. Every offer in this game was below it. ` + (dealt ? 'By accepting, you behaved as a risk averse decision maker would: you preferred a sure amount to a gamble with a higher expected value.' : 'By rejecting every offer, you behaved as an expected value maximiser (or as a risk seeker) would.');
+  }
+  el('dreset').onclick = start; start();
+})();
 </script>
 </body>
 </html>

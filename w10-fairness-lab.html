@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fairness Lab</title>
+<title>Week 10: Social Preferences and Strategic Reasoning</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
-  <button data-tab="ult">Ultimatum vs five personalities</button>
+  <button data-tab="ult">Ultimatum game</button>
   <button data-tab="beauty">Beauty contest</button>
   <button data-tab="public">Public goods</button>
 </div>
 
 <section class="panel" id="ult">
-  <p class="lead">You split $10 with five responders. Each has inequality-averse preferences u = x &minus; &alpha;&middot;max(y &minus; x, 0): they dislike getting less than you. One is a pure egoist. Make each an offer, then guess who is who.</p>
+  <p class="lead">You split $10 with five responders. Each has inequality-averse preferences u = x &minus; &alpha;&middot;max(y &minus; x, 0): they dislike getting less than you. One responder cares only about money (One is a pure egoist.alpha; = 0). Make an offer to each responder, then identify which responder is which.</p>
   <div class="card amber"><table class="t" id="ut"></table>
   <div class="row"><button class="btn dark" id="ugo">Make offers</button><button class="btn ghost" id="ureveal">Reveal personalities</button></div>
   <p id="uout"></p></div>
 </section>
 
 <section class="panel" id="beauty">
-  <p class="lead">Everyone picks 0 to 100. The winner is closest to <b>p &times; the average</b>. Set the share of players at each level of reasoning and see what wins (Angner 11.4; Nagel 1995).</p>
+  <p class="lead">Each player chooses a number from 0 to 100. The winner is closest to <b>p &times; the average</b>. Set the share of players at each level of reasoning and see what wins (Angner, Chapter 11; Nagel, 1995).</p>
   <div class="grid">
     <div class="card teal">
       <label>p = <b id="pv"></b></label><input type="range" id="p" min="0.3" max="0.9" step="0.01" value="0.667">
@@ -53,7 +53,7 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(10, 'Fairness Lab');
+Lab.header(10, 'Strategic Interaction: Social Preferences and Strategic Reasoning');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 // ---------- ultimatum ----------

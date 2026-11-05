@@ -3,29 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bayes Machine</title>
+<title>Week 3: Bayes' Rule</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
-  <button data-tab="bayes">Bayes Machine</button>
-  <button data-tab="monty">Monty Hall</button>
+  <button data-tab="bayes">Bayes' rule</button>
+  <button data-tab="monty">The Monty Hall problem</button>
 </div>
 
 <section class="panel" id="bayes">
   <p class="lead">A test, a detector or a witness tells you <b>P(evidence | hypothesis)</b>. What you usually want is <b>P(hypothesis | evidence)</b>. The base rate decides how far apart they are.</p>
   <div class="row"><span class="label">Presets</span>
-    <button class="btn ghost" data-p="ai">AI detector (Week 3 cold open)</button>
-    <button class="btn ghost" data-p="mam">Mammogram (Angner 5.20)</button>
-    <button class="btn ghost" data-p="cab">Cab problem (Ex. 5.22)</button>
-    <button class="btn ghost" data-p="fraud">Bank fraud flag</button>
+    <button class="btn ghost" data-p="ai">AI detection (Week 3 example)</button>
+    <button class="btn ghost" data-p="mam">Mammography (Angner, Example 5.20)</button>
+    <button class="btn ghost" data-p="cab">Taxi cab problem (Angner, Exercise 5.22)</button>
+    <button class="btn ghost" data-p="fraud">Bank fraud flag (practice question)</button>
   </div>
   <div class="grid">
     <div class="card teal">
-      <label>Base rate P(H): <b id="bv"></b></label><input type="range" id="base" min="0.001" max="0.5" step="0.001">
+      <label>Base rate P(H): <b id="bv"></b></label><input type="range" id="base" min="0.0001" max="0.5" step="0.0001">
       <label>Sensitivity P(+ | H): <b id="sv"></b></label><input type="range" id="sens" min="0.5" max="1" step="0.001">
-      <label>False positive rate P(+ | not H): <b id="fv"></b></label><input type="range" id="fpr" min="0" max="0.3" step="0.001">
+      <label>False positive rate P(+ | not H): <b id="fv"></b></label><input type="range" id="fpr" min="0" max="0.3" step="0.0001">
       <div class="row" style="margin-top:12px"><span>P(H | +) =</span><span class="big brick" id="post"></span></div>
       <p id="freq" class="note"></p>
     </div>
@@ -35,14 +35,14 @@
       <p class="muted"><span style="color:#B42318">&#9632;</span> H and flagged &nbsp; <span style="color:#e9a6a0">&#9632;</span> H but missed &nbsp; <span style="color:#E8A317">&#9632;</span> not H but flagged &nbsp; <span style="color:#c9ced6">&#9632;</span> not H, clear</p>
     </div>
   </div>
-  <div class="note">Numbers in the presets are for teaching. The AI-detector preset is hypothetical. The ABC reported in October 2025 that one Australian university logged nearly 6,000 misconduct cases in 2024, around 90% about AI, and later stopped using its detector.</div>
+  <div class="note">The numbers in the presets are for teaching purposes. The AI-detector preset is hypothetical. The ABC reported in October 2025 that one Australian university logged nearly 6,000 misconduct cases in 2024, around 90% about AI, and later stopped using its detector.</div>
 </section>
 
 <section class="panel" id="monty">
-  <p class="lead">Three cups, one coin. Pick a cup. The host, who knows where the coin is, lifts an empty cup you did not pick. Stay or switch?</p>
+  <p class="lead">Three cups, one coin. Choose a cup. The host, who knows where the coin is, lifts an empty cup that you did not choose. Do you keep your cup or switch?</p>
   <div class="grid">
     <div class="card amber">
-      <div class="label">Play one round</div>
+      <div class="label">One round</div>
       <div class="choice" id="cups" style="grid-template-columns:1fr 1fr 1fr"></div>
       <p id="mmsg"></p>
       <div class="row"><button class="btn" id="stay" disabled>Stay</button><button class="btn dark" id="switch" disabled>Switch</button><button class="btn ghost" id="mreset">New round</button></div>
@@ -59,16 +59,16 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(3, 'Bayes Machine');
+Lab.header(3, "Judgement under Risk and Uncertainty: Bayes' Rule");
 Lab.tabs();
 const $ = id => document.getElementById(id);
-const P = { ai: [0.05, 0.98, 0.04], mam: [0.01, 0.90, 0.10], cab: [0.15, 0.80, 0.20], fraud: [0.001, 0.99, 0.01] };
+const P = { ai: [0.05, 0.98, 0.04], mam: [0.01, 0.80, 0.096], cab: [0.15, 0.80, 0.20], fraud: [0.0001, 0.99, 0.01] };
 function setP(k) { const [b, s, f] = P[k]; $('base').value = b; $('sens').value = s; $('fpr').value = f; upd(); }
 document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => setP(b.dataset.p));
 
 function upd() {
   const b = +$('base').value, s = +$('sens').value, f = +$('fpr').value;
-  $('bv').textContent = Lab.pct(b, 1); $('sv').textContent = Lab.pct(s, 1); $('fv').textContent = Lab.pct(f, 1);
+  $('bv').textContent = Lab.pct(b, b < 0.01 ? 2 : 1); $('sv').textContent = Lab.pct(s, 1); $('fv').textContent = Lab.pct(f, f < 0.01 ? 2 : 1);
   const post = b * s / (b * s + (1 - b) * f || 1);
   $('post').textContent = Lab.pct(post, 1);
   const H = 1000 * b, tp = H * s, fp = (1000 - H) * f;
@@ -90,13 +90,13 @@ setP('ai');
 let coin, pick, opened, phase, wins = { stay: [0, 0], switch: [0, 0] };
 function newRound() {
   coin = Math.floor(Math.random() * 3); pick = null; opened = null; phase = 'pick';
-  $('mmsg').textContent = 'Pick a cup.'; $('stay').disabled = $('switch').disabled = true; draw();
+  $('mmsg').textContent = 'Choose a cup.'; $('stay').disabled = $('switch').disabled = true; draw();
 }
 function draw() {
   $('cups').innerHTML = [0,1,2].map(i => {
     let t = 'Cup ' + (i + 1);
     if (i === opened) t += ' (empty)';
-    if (phase === 'done' && i === coin) t += ' → coin!';
+    if (phase === 'done' && i === coin) t += ' (coin)';
     return `<button data-i="${i}" class="${i === pick ? 'sel' : ''}" ${i === opened ? 'disabled' : ''}>${t}</button>`;
   }).join('');
   $('cups').querySelectorAll('button').forEach(b => b.onclick = () => choose(+b.dataset.i));
@@ -113,7 +113,7 @@ function finish(sw) {
   if (sw) pick = [0,1,2].find(j => j !== pick && j !== opened);
   const win = pick === coin; const k = sw ? 'switch' : 'stay';
   wins[k][0] += win; wins[k][1]++;
-  phase = 'done'; $('mmsg').innerHTML = win ? '<span class="ok">You win the coin.</span>' : '<span class="bad">Empty.</span>';
+  phase = 'done'; $('mmsg').innerHTML = win ? '<span class="ok">You win the coin.</span>' : '<span class="bad">The cup is empty.</span>';
   $('stay').disabled = $('switch').disabled = true; draw();
   $('mscore').textContent = `Your record. Stay: ${wins.stay[0]}/${wins.stay[1]}. Switch: ${wins.switch[0]}/${wins.switch[1]}.`;
 }

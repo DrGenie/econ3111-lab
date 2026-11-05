@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Time Machine</title>
+<title>Week 7: Intertemporal Choice</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
   <button data-tab="disc">Your discount rate</button>
-  <button data-tab="credit">True cost of credit</button>
-  <button data-tab="curves">Exponential vs beta-delta</button>
+  <button data-tab="credit">The cost of credit</button>
+  <button data-tab="curves">Exponential and hyperbolic discounting</button>
 </div>
 
 <section class="panel" id="disc">
-  <p class="lead">Six quick choices find the amount that makes you indifferent between $100 now and money later. We ask twice: once about today, once about a year from now.</p>
+  <p class="lead">Six choices estimate the amount that makes you indifferent between $100 and a larger amount one month later. The questions are asked twice: once starting today, and once starting a year from now. Under the EDU model, the two answers should be the same.</p>
   <div class="card amber" id="tq">
     <div class="label" id="tlab"></div>
     <div class="choice"><button id="tA"></button><button id="tB"></button></div>
@@ -23,7 +23,7 @@
   <div class="grid" id="tres" style="display:none">
     <div class="card"><div class="label">Now vs 1 month</div><p>Indifferent at about <b id="x1"></b></p><p>Monthly &delta; = <b id="d1"></b>; annual discount rate &asymp; <span class="big brick" id="r1"></span></p></div>
     <div class="card"><div class="label">12 months vs 13 months</div><p>Indifferent at about <b id="x2"></b></p><p>Monthly &delta; = <b id="d2"></b>; annual rate &asymp; <span class="big blue" id="r2"></span></p></div>
-    <div class="card leaf"><div class="label">Verdict</div><p id="tver"></p></div>
+    <div class="card leaf"><div class="label">Interpretation</div><p id="tver"></p></div>
   </div>
 </section>
 
@@ -60,7 +60,7 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(7, 'Time Machine');
+Lab.header(7, 'Intertemporal Choice');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 // titration: bisection on X in [100, 200]

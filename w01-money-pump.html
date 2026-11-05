@@ -3,12 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Money Pump</title>
+<title>Week 1: Preferences and Rational Choice</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
-<p class="lead">Rational preferences must be <b>complete</b> (you can compare any two options) and <b>transitive</b> (no cycles). Make six quick choices below. If your answers cycle, the Lab will show you what that costs.</p>
+<div class="tabs">
+  <button data-tab="pref">1. Are your preferences rational?</button>
+  <button data-tab="dn">2. Descriptive or normative?</button>
+</div>
+<section class="panel" id="pref">
+<p class="lead">Rational preferences must be <b>complete</b> (any two options can be compared) and <b>transitive</b> (there are no cycles). Make six pairwise choices between four drinks. If your choices form a cycle, the laboratory shows the consequence: a money pump.</p>
 
 <div class="card" id="q">
   <div class="label" id="qn"></div>
@@ -32,17 +37,34 @@
   <div class="card leaf" id="util" style="display:none;margin-top:14px">
     <div class="label">Utility representation</div>
     <p>Your ranking: <b id="rank"></b></p>
-    <p>Type any numbers. They represent your preferences if bigger numbers go to better snacks and tied snacks get equal numbers.</p>
+    <p>Enter any numbers. They represent your preferences if bigger numbers go to preferred drinks and equally good drinks receive equal numbers.</p>
     <div class="row" id="uin"></div>
     <div class="row"><button class="btn dark" id="check">Check my utility function</button><span id="uout"></span></div>
     <p class="muted">Try multiplying all your numbers by 10, or adding 100. It still works: utility is <b>ordinal</b>.</p>
   </div>
   <div class="row" style="margin-top:14px"><button class="btn ghost" id="again">Start again</button></div>
 </div>
+</section>
+<section class="panel" id="dn">
+<p class="lead">A <b>descriptive</b> statement says how people actually behave. A <b>normative</b> statement says how people ought to behave, for example to be rational (Angner, Chapter 1). Classify each statement.</p>
+<div id="dnquiz"></div>
+</section>
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(1, 'Money Pump');
+Lab.header(1, 'Preferences and Rational Choice');
+Lab.tabs();
+const DN = [
+ ['Many people continue to watch a film they dislike because they have paid for the ticket.', 0, 'It reports observed behaviour (the sunk cost effect).'],
+ ['A rational person should ignore costs that cannot be recovered.', 1, 'It states how a person ought to decide.'],
+ ['If a person prefers A to B and B to C, she should prefer A to C.', 1, 'This is the requirement of transitivity, a standard of rationality.'],
+ ['Doctors often overestimate the probability of disease after a positive test.', 0, 'It reports how people actually judge probabilities (base-rate neglect, Week 4).'],
+ ['Probability judgements ought to obey the rules of probability.', 1, 'It states a standard that judgements should meet (Week 3).'],
+ ['In ultimatum game experiments, most offers are between 40% and 50% of the pie.', 0, 'It reports experimental evidence (Week 10).'],
+ ['People are more likely to stay in a retirement plan when enrolment is automatic.', 0, 'It reports observed behaviour (the default effect, Week 11).'],
+ ['A person who maximises expected utility should not be affected by a common consequence.', 1, 'It states what expected utility theory requires (Week 6).']
+];
+Lab.quiz(document.getElementById('dnquiz'), DN.map(d => ({ q: d[0], opts: ['Descriptive', 'Normative'], a: d[1], why: d[2] })), { color: 'teal' });
 const items = ['Brown sugar milk tea', 'Taro milk tea', 'Matcha latte', 'Mango smoothie'];
 const pairs = [[0,1],[1,2],[2,0],[0,3],[1,3],[2,3]];
 let k = 0, pref = {}; // pref['i,j'] = 1 if i>j, -1 if j>i, 0 tie, null cannot compare
@@ -99,11 +121,11 @@ function startPump([i, j, l]) {
 function offer() {
   const cur = cycle[hold % 3], next = cycle[(hold + 1) % 3];
   $('cash').textContent = Lab.money(cash);
-  $('pumpText').innerHTML = `You are holding <b>${items[cur]}</b>. You told me you like <b>${items[next]}</b> at least as much. Pay $1 to swap?`;
+  $('pumpText').innerHTML = `You are holding <b>${items[cur]}</b>. You stated that you like <b>${items[next]}</b> at least as much. Pay $1 to swap?`;
   $('pumpNote').textContent = step >= 3 ? `You have gone round the cycle ${Math.floor(step / 3)} time(s) and are holding what you started with, $${step} poorer. That is a money pump.` : '';
 }
 $('accept').onclick = () => { if (cash < 1) return; cash -= 1; hold++; step++; offer(); };
-$('decline').onclick = () => { $('pumpNote').textContent = `You stopped after paying $${step}. Real people stop too, often by noticing the cycle. The axiom of transitivity is what rules this out.`; };
+$('decline').onclick = () => { $('pumpNote').textContent = `You stopped after paying $${step}. In practice, people usually stop once they notice the cycle. Transitivity rules out such cycles.`; };
 
 function showUtility() {
   $('util').style.display = 'block';

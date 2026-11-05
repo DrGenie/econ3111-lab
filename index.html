@@ -3,38 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECON3111 Lab</title>
+<title>ECON3111 Online Laboratory</title>
 <meta name="description" content="Interactive behavioural economics simulations for ECON3111, University of Newcastle.">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
-<p class="lead">One interactive lab for each week of ECON3111 Behavioural Economics. Every lab runs in your browser, works on a phone, and stores nothing on a server. Open the one for this week from the QR code on the slides, or pick from the list.</p>
+<p class="lead">This online laboratory accompanies ECON3111 Behavioural Economics. Each week has interactive simulations, experiments and short quizzes that apply the concepts in the slides. Open the page for the current week by scanning the QR code on the slides, or choose it below. Every page runs in your browser and works on a phone. Nothing you enter is sent to a server.</p>
 
 <div class="grid weekgrid" id="weeks"></div>
 
-<h2 style="margin-top:30px">Also here</h2>
+<h2 style="margin-top:30px">Other resources</h2>
 <div class="grid weekgrid">
-  <a class="card amber" href="podcast.html"><div class="label">Podcast</div><h3>Behave Yourself: the ECON3111 podcast</h3><p class="muted">Thirteen short episodes, one per week, plus the best outside episodes to listen to.</p></a>
-  <a class="card plum" href="live-lab.html"><div class="label">For the lecturer</div><h3>Live Lab: class results on screen</h3><p class="muted">Paste the room's answers and show the histogram, the anchoring effect or the beauty-contest winner in seconds.</p></a>
+  <a class="card amber" href="podcast.html"><div class="label">Podcast</div><h3>The ECON3111 podcast</h3><p class="muted">A short audio episode for each week (Weeks 0 to 12), with transcripts, and links to further episodes from other podcasts.</p></a>
+  <a class="card plum" href="live-lab.html"><div class="label">For the lecturer</div><h3>Classroom experiments</h3><p class="muted">Enter the class's answers and display the results: the number game, anchoring, and split-class comparisons.</p></a>
 </div>
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header('', 'Behavioural Economics, hands on');
+Lab.header('', 'Online Laboratory');
 const W = [
- [1,'w01-money-pump.html','Money Pump','Rank four snacks. If your preferences cycle, the Lab will take your money one dollar at a time.','blue'],
- [2,'w02-context-lab.html','Context Lab','Build a decoy, test your own anchor, and see when to bundle gains and losses.','amber'],
- [3,'w03-bayes-machine.html','Bayes Machine','1,000 people on screen. Change the base rate and watch the posterior move. Plus Monty Hall.','teal'],
- [4,'w04-are-you-random.html','Are You Random?','Type 50 coin flips. The Lab grades how random you really are.','brick'],
- [5,'w05-risk-lab.html','Risk Lab','Measure your own risk attitude, find certainty equivalents, play St Petersburg.','plum'],
- [6,'w06-prospect-studio.html','Prospect Theory Studio','Drag the value and weighting curves. See lottery tickets and insurance in one wallet.','amber'],
- [7,'w07-time-machine.html','Time Machine','Six now-or-later questions reveal your discount rate. Plus the true cost of fast credit.','blue'],
- [8,'w08-future-you.html','Future You','Naive, sophisticated or exponential: who misses the best movie? Plus the peak-end rule.','leaf'],
- [9,'w09-game-lab.html','Game Lab','Type any 2x2 game and get every equilibrium. Run your own Axelrod tournament.','brick'],
- [10,'w10-fairness-lab.html','Fairness Lab','Ultimatum offers to five hidden personalities, a beauty contest and public goods.','teal'],
- [11,'w11-nudge-studio.html','Nudge Studio','Design a choice environment for 10,000 simulated students. Then spot the dark patterns.','plum'],
- [12,'w12-final-boss.html','The Final Boss','The whole-course quiz board for teams.','amber']
+ [1,'w01-money-pump.html','Preferences and Rational Choice','Test whether your preferences are complete and transitive, see a money pump, and classify statements as descriptive or normative.','blue'],
+ [2,'w02-context-lab.html','Choice under Certainty','Decoy effect, anchoring, mental accounting, and six short cases on sunk costs and opportunity costs.','amber'],
+ [3,'w03-bayes-machine.html',"Judgement under Risk: Bayes' Rule",'Change the base rate, the hit rate and the false positive rate and see the posterior probability. The Monty Hall problem.','teal'],
+ [4,'w04-are-you-random.html','Judgement under Risk: Heuristics and Biases','Test whether your sequences look random, compute conjunctions and disjunctions, and identify heuristics in eight cases.','brick'],
+ [5,'w05-risk-lab.html','Choice under Risk','Deal or No Deal, the Holt and Laury risk task, certainty equivalents, and the St Petersburg game.','plum'],
+ [6,'w06-prospect-studio.html','Prospect Theory','The value and weighting functions, the fourfold pattern, and the Allais and Ellsberg problems.','amber'],
+ [7,'w07-time-machine.html','Intertemporal Choice','Estimate your discount rate, compute the cost of short-term credit, and compare exponential and hyperbolic discounting.','blue'],
+ [8,'w08-future-you.html','Present Bias and Misprediction','Naive, sophisticated and time consistent decision makers, present bias, and the peak-end rule.','leaf'],
+ [9,'w09-game-lab.html','Game Theory','Solve any two-by-two game, including mixed strategies, and play the repeated prisoners\' dilemma.','brick'],
+ [10,'w10-fairness-lab.html','Social Preferences and Strategic Reasoning','The ultimatum game, the beauty contest and the public goods game.','teal'],
+ [11,'w11-nudge-studio.html','Choice Architecture','Design a nudge, classify policies as nudges, incentives or mandates, and identify dark patterns.','plum'],
+ [12,'w12-revision-quiz.html','Revision Quiz','Twenty-two questions covering Weeks 1 to 11, with explanations and results by week.','amber']
 ];
 document.getElementById('weeks').innerHTML = W.map(w => `<a class="card ${w[4]}" href="${w[1]}"><div class="label">Week ${w[0]}</div><h3>${w[2]}</h3><p class="muted">${w[3]}</p></a>`).join('');
 </script>

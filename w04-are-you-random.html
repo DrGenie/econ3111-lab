@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Are You Random?</title>
+<title>Week 4: Heuristics and Biases</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -12,13 +12,14 @@
   <button data-tab="rand">Are you random?</button>
   <button data-tab="chain">Chains and plans</button>
   <button data-tab="linda">Linda</button>
+  <button data-tab="quiz">Identify the heuristic</button>
 </div>
 
 <section class="panel" id="rand">
-  <p class="lead">Without flipping a coin, make up a sequence of heads and tails that looks random. Tap H or T, or type into the box. Aim for 50.</p>
+  <p class="lead">Without tossing a coin, write a sequence of heads (H) and tails (T) that you believe looks random. Use the buttons or type in the box. Aim for 50 tosses.</p>
   <div class="row"><button class="btn" id="bH" style="min-width:80px">H</button><button class="btn dark" id="bT" style="min-width:80px">T</button><button class="btn ghost" id="bU">Undo</button><button class="btn ghost" id="bR">Real coin (computer)</button><button class="btn ghost" id="bC">Clear</button></div>
   <textarea id="seq" rows="2" style="width:100%;font-family:monospace;letter-spacing:2px" placeholder="HTHHT..."></textarea>
-  <div class="row"><button class="btn dark" id="grade">Grade my sequence</button><span class="muted" id="len"></span></div>
+  <div class="row"><button class="btn dark" id="grade">Assess my sequence</button><span class="muted" id="len"></span></div>
   <div class="grid" id="out" style="display:none">
     <div class="card brick"><div class="label">Longest run</div><div class="big" id="run"></div><p id="runP" class="muted"></p></div>
     <div class="card amber"><div class="label">Switches (H to T or T to H)</div><div class="big" id="sw"></div><p id="swP" class="muted"></p></div>
@@ -49,10 +50,15 @@
     <p id="lmsg"></p>
   </div>
 </section>
+
+<section class="panel" id="quiz">
+<p class="lead">For each case, identify the heuristic or bias that best explains the judgement described.</p>
+<div id="hquiz"></div>
+</section>
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(4, 'Are You Random?');
+Lab.header(4, 'Judgement under Risk and Uncertainty: Heuristics and Biases');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 const clean = () => $('seq').value.toUpperCase().replace(/[^HT]/g, '');
@@ -65,7 +71,7 @@ const longest = s => { let b = 1, c = 1; for (let i = 1; i < s.length; i++) { c 
 const switches = s => { let k = 0; for (let i = 1; i < s.length; i++) if (s[i] !== s[i - 1]) k++; return k; };
 $('grade').onclick = () => {
   const s = clean(), n = s.length;
-  if (n < 20) { $('len').textContent = 'Please enter at least 20 flips.'; return; }
+  if (n < 20) { $('len').textContent = 'Please enter at least 20 tosses.'; return; }
   const sims = 10000, runs = [], sws = [];
   for (let k = 0; k < sims; k++) { const r = Array.from({ length: n }, () => Math.random() < .5 ? 'H' : 'T').join(''); runs.push(longest(r)); sws.push(switches(r)); }
   const L = longest(s), S = switches(s);
@@ -74,7 +80,7 @@ $('grade').onclick = () => {
   $('runP').textContent = `Only ${Lab.pct(pRunLE)} of real sequences have a longest run this short or shorter.`;
   $('swP').textContent = `A fair coin switches about half the time (${Lab.fmt((n - 1) / 2, 0)}). ${Lab.pct(pSwGE)} of real sequences switch this often or more.`;
   const fake = pRunLE < 0.1 || pSwGE < 0.1;
-  $('verdict').innerHTML = fake ? '<span class="bad">Probably made up.</span> Your sequence switches too often and avoids long streaks. People expect small samples to look balanced: the law of small numbers.' : '<span class="ok">Plausibly random.</span> Your sequence has the streaks a real coin produces. Well done, or did you use the computer button?';
+  $('verdict').innerHTML = fake ? '<span class="bad">Probably made up.</span> Your sequence switches too often and avoids long streaks. People expect small samples to look balanced: the law of small numbers.' : '<span class="ok">Plausibly random.</span> Your sequence has runs of the length that a fair coin typically produces.';
   const maxR = Math.max(...runs, L), counts = Array(maxR).fill(0); runs.forEach(r => counts[r - 1]++);
   Lab.bars($('runChart'), { labels: counts.map((_, i) => String(i + 1)), values: counts.map(c => 100 * c / sims), colors: counts.map((_, i) => i + 1 === L ? Lab.C.brick : Lab.C.amber), vfmt: v => v >= 1 ? Lab.fmt(v, 0) + '%' : '', ylabel: '% of real sequences', xlabel: 'longest run (red bar: yours)' });
 };
@@ -90,6 +96,18 @@ function chain() {
 
 $('la').onclick = () => $('lmsg').innerHTML = '<span class="ok">Correct.</span> Every feminist bank teller is a bank teller, so P(teller and feminist) cannot exceed P(teller).';
 $('lb').onclick = () => $('lmsg').innerHTML = '<span class="bad">You are in good company:</span> about 85% chose this in the original study. But it breaks the conjunction rule: P(A and B) &le; P(A). The description is <i>representative</i> of a feminist, which makes the detailed story feel more likely.';
+
+const HB = ['Gambler\'s fallacy', 'Conjunction fallacy', 'Disjunction fallacy', 'Base-rate neglect', 'Availability', 'Confirmation bias', 'Overconfidence'];
+Lab.quiz(document.getElementById('hquiz'), [
+ { q: 'After a roulette wheel lands on red eight times in a row, a player bets heavily on black because "black is due".', a: 0, why: 'Spins are independent; a run of red does not make black more likely.' },
+ { q: 'An investor is told a detailed story about how a start-up will grow, win a government contract and then be bought by a large firm. She judges this whole sequence more likely than "the start-up will be bought by a large firm".', a: 1, why: 'A conjunction of events cannot be more probable than one of its parts. Detail makes a story more representative, not more probable.' },
+ { q: 'An engineer judges that a new system is safe because each of its 20 independent components is 99% reliable. In fact, the probability that at least one component fails is about 18%.', a: 2, why: 'People underestimate the probability that at least one of many unlikely events occurs: 1 - 0.99^20 is about 0.18.' },
+ { q: 'A security system at an airport flags 1% of innocent travellers and almost every genuine threat. Staff treat every flagged traveller as very likely to be a threat, although genuine threats are extremely rare.', a: 3, why: 'With a very low base rate, most flagged travellers are innocent. Staff confuse P(flag | threat) with P(threat | flag).' },
+ { q: 'After extensive news coverage of a shark attack, many people avoid swimming at the beach, although they drive on busy roads every day.', a: 4, why: 'Vivid, widely reported events come to mind easily, so their probability is overestimated.' },
+ { q: 'A manager who believes that a new employee is weak notices each of her mistakes, but gives little weight to her successes.', a: 5, why: 'Evidence is interpreted and remembered in a way that supports the existing belief.' },
+ { q: 'Asked to give a range that they are 90% sure contains the population of Indonesia, most students give ranges that do not contain the true value.', a: 6, why: 'The ranges are too narrow for the stated confidence: people are poorly calibrated.' },
+ { q: 'In a survey of drivers, more than 80% rate themselves as more skilful than the median driver.', a: 6, why: 'At most half of drivers can be above the median. Most people overestimate their own ability relative to others.' }
+].map(x => ({ ...x, opts: HB })), { color: 'brick' });
 </script>
 </body>
 </html>

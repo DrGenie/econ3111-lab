@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Week 12: Revision Quiz</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+<p class="lead">Twenty-two questions, two for each of Weeks 1 to 11. Attempt each question before reading the explanation. At the end, the quiz shows your result for each week, so that you can see which topics to revise.</p>
+<div class="row"><label class="muted">Show questions from
+  <select id="wk"><option value="all">all weeks</option></select></label></div>
+<div id="rq"></div>
+</main>
+<script src="assets/lab.js"></script>
+<script>
+Lab.header(12, 'Revision Quiz');
+const T = ['', 'Rational choice', 'Choice under certainty', 'Probability and Bayes\' rule', 'Heuristics and biases', 'Expected utility', 'Prospect theory', 'The EDU model', 'Present bias', 'Game theory', 'Social preferences', 'Choice architecture'];
+const Q = [
+ [1, 'A person prefers tea to coffee, coffee to juice, and juice to tea. Which property do her preferences violate?', ['Completeness', 'Transitivity', 'Reflexivity', 'Monotonicity'], 1, 'The preferences form a cycle, so they are not transitive, and she could be exploited by a money pump.'],
+ [1, 'Utility in rational choice theory is ordinal. This means that:', ['utility measures happiness in units', 'only the ranking of options matters, not the size of utility differences', 'utility can be added across people', 'utility must be between 0 and 1'], 1, 'Any increasing transformation of a utility function represents the same preferences.'],
+ [2, 'You were given a free ticket to a game. Someone offers you $80 for it, and you would pay at most $50 to attend. The opportunity cost of attending is:', ['$0', '$50', '$80', '$30'], 2, 'Attending means forgoing the $80 you could receive by selling the ticket.'],
+ [2, 'Adding an option that is dominated by B, but not by A, increases the share of people choosing B. This is:', ['the compromise effect', 'the decoy (attraction) effect', 'anchoring', 'the endowment effect'], 1, 'The asymmetrically dominated decoy makes B look better and violates regularity.'],
+ [3, 'Events A and B are independent, with P(A) = 0.4 and P(B) = 0.5. P(A and B) equals:', ['0.9', '0.2', '0.1', '0'], 1, 'For independent events, P(A and B) = P(A) × P(B) = 0.2.'],
+ [3, 'A disease affects 2% of people. A test detects 90% of cases and gives false positives for 10% of healthy people. P(disease | positive) is closest to:', ['90%', '50%', '16%', '2%'], 2, 'Out of 1,000: 18 true positives and 98 false positives, so 18/116 ≈ 16%.'],
+ [4, 'Judging that a detailed, plausible scenario is more probable than one of its parts is:', ['the disjunction fallacy', 'the conjunction fallacy', 'availability', 'the gambler\'s fallacy'], 1, 'A conjunction can never be more probable than one of its conjuncts.'],
+ [4, 'A person overestimates the risk of a terrorist attack after extensive media coverage. This is best explained by:', ['availability', 'representativeness', 'anchoring', 'overconfidence'], 0, 'Vivid, recent and widely reported events come to mind easily.'],
+ [5, 'A gamble pays $100 or $0 with equal probability, and u(x) = √x. The certainty equivalent is:', ['$50', '$25', '$10', '$5'], 1, 'EU = 0.5 × 10 = 5, so CE = 5² = $25.'],
+ [5, 'A person whose utility function is concave is:', ['risk seeking', 'risk neutral', 'risk averse', 'loss averse'], 2, 'Concavity means that the certainty equivalent is below the expected value.'],
+ [6, 'Most people choose A ($1m for certain) over B, and D over C, in the Allais problem. This violates:', ['the independence axiom', 'completeness', 'transitivity', 'Bayes\' rule'], 0, 'The two choices differ only by a common consequence, which should not affect the choice.'],
+ [6, 'According to the fourfold pattern, people facing a high probability of a loss tend to be:', ['risk averse', 'risk seeking', 'risk neutral', 'ambiguity averse'], 1, 'The value function is convex for losses, so people gamble to avoid a sure loss.'],
+ [7, 'With δ = 0.9 and u(x) = x, the utility today of $100 received in two periods is:', ['100', '90', '81', '72.9'], 2, 'δ² × 100 = 0.81 × 100 = 81.'],
+ [7, 'A person prefers $100 today to $110 in a week, but $110 in 53 weeks to $100 in 52 weeks. This is:', ['consistent with the EDU model', 'a preference reversal', 'the magnitude effect', 'the sign effect'], 1, 'Delaying both options by the same amount reverses the preference, which the EDU model rules out.'],
+ [8, 'In the β-δ model, present bias is represented by:', ['δ < 1', 'β < 1', 'β > 1', 'δ = 1'], 1, 'β discounts every future period relative to the present.'],
+ [8, 'A person who chooses to restrict her own future options is most likely:', ['time consistent', 'naive', 'sophisticated', 'risk neutral'], 2, 'Only a person who foresees her future present bias values commitment.'],
+ [9, 'In the prisoners\' dilemma, the Nash equilibrium is:', ['both cooperate', 'both defect', 'one cooperates and one defects', 'in mixed strategies only'], 1, 'Defection is strictly dominant for both players.'],
+ [9, 'In matching pennies, the Nash equilibrium is:', ['both play Heads', 'both play Tails', 'each plays Heads with probability 0.5', 'there is no equilibrium'], 2, 'There is no pure-strategy equilibrium; each player mixes to make the other indifferent.'],
+ [10, 'With Fehr and Schmidt preferences, α measures aversion to:', ['advantageous inequity', 'disadvantageous inequity', 'risk', 'ambiguity'], 1, 'α applies when the other person receives more.'],
+ [10, 'In the beauty contest (two thirds of the average), a level-2 player chooses about:', ['50', '33', '22', '0'], 2, 'Level 1 chooses 2/3 × 50 ≈ 33; level 2 chooses 2/3 × 33 ≈ 22.'],
+ [11, 'Which of the following is a nudge?', ['a tax on tobacco', 'a ban on smoking indoors', 'automatic enrolment with an opt-out', 'a fine for littering'], 2, 'A default preserves all options and leaves prices unchanged.'],
+ [11, 'Making a subscription easy to start but very difficult to cancel is an example of:', ['a nudge', 'sludge', 'a commitment device', 'a social norm'], 1, 'Sludge is friction that works against people\'s interests.']
+];
+const sel = document.getElementById('wk');
+for (let w = 1; w <= 11; w++) sel.innerHTML += `<option value="${w}">Week ${w}: ${T[w]}</option>`;
+function render() {
+  const v = sel.value, qs = Q.filter(q => v === 'all' || q[0] === +v);
+  const res = {};
+  Lab.quiz(document.getElementById('rq'), qs.map(q => ({ q: `<span class="pill">Week ${q[0]}: ${T[q[0]]}</span><br>${q[1]}`, opts: q[2], a: q[3], why: q[4] })), {
+    color: 'amber',
+    onAnswer: (i, right) => { const w = qs[i][0]; res[w] = res[w] || [0, 0]; res[w][1]++; if (right) res[w][0]++; },
+    done: () => {
+      const weak = Object.keys(res).filter(w => res[w][0] < res[w][1]);
+      return '<table class="t"><tr><th>Week</th><th>Topic</th><th>Correct</th></tr>' + Object.keys(res).map(w => `<tr><td>${w}</td><td>${T[w]}</td><td>${res[w][0]} of ${res[w][1]}</td></tr>`).join('') + '</table>' +
+        (weak.length ? `<p>Suggested revision: Week${weak.length > 1 ? 's' : ''} ${weak.join(', ')}. Review the slides, practice questions and podcast episode for ${weak.length > 1 ? 'these weeks' : 'this week'}.</p>` : '<p>All correct. Try the examination-style questions and the mock examination in the Week 12 slides.</p>');
+    }
+  });
+}
+sel.onchange = render; render();
+</script>
+</body>
+</html>

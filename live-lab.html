@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Live Lab</title>
+<title>Classroom Experiments</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <button data-tab="numbers">Any numbers</button>
   <button data-tab="beauty">Number game (Week 0 and 10)</button>
   <button data-tab="anchor">Anchoring (Week 2)</button>
-  <button data-tab="split">Split-room vote (Weeks 0, 2, 6)</button>
+  <button data-tab="split">Split-class comparison (Weeks 2 and 6)</button>
 </div>
 
 <section class="panel" id="numbers">
@@ -43,7 +43,7 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header('', 'Live Lab');
+Lab.header('', 'Classroom Experiments');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 const nums = t => t.split(/[\s,;]+/).map(Number).filter(x => !isNaN(x) && x !== '' );

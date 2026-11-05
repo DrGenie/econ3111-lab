@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Prospect Theory Studio</title>
+<title>Week 6: Prospect Theory</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <main>
 <div class="tabs">
-  <button data-tab="studio">Studio</button>
-  <button data-tab="allais">Allais and Ellsberg check</button>
+  <button data-tab="studio">Prospect theory</button>
+  <button data-tab="allais">The Allais and Ellsberg problems</button>
 </div>
 
 <section class="panel" id="studio">
-  <p class="lead">Prospect theory values a gamble as V = &Sigma; &pi;(p) v(x): a value function over gains and losses, and decision weights instead of probabilities. Move the sliders. Defaults are Tversky and Kahneman's (1992) estimates.</p>
+  <p class="lead">Prospect theory values a gamble as V = &Sigma; &pi;(p) v(x): a value function over gains and losses, and decision weights instead of probabilities. Move the sliders. The initial values are Tversky and Kahneman's (1992) estimates.</p>
   <div class="grid">
     <div class="card amber">
       <label>Curvature &alpha; = <b id="av"></b></label><input type="range" id="a" min="0.2" max="1" step="0.01" value="0.88">
@@ -39,18 +39,18 @@
 <section class="panel" id="allais">
   <div class="grid">
     <div class="card amber">
-      <div class="label">Allais (Angner Table 7.1)</div>
-      <p><b>Decision 1</b></p>
-      <div class="choice"><button data-q="a1" data-v="a">1a: $1m for sure</button><button data-q="a1" data-v="b">1b: 10% $5m, 89% $1m, 1% $0</button></div>
-      <p><b>Decision 2</b></p>
-      <div class="choice"><button data-q="a2" data-v="a">2a: 11% $1m, 89% $0</button><button data-q="a2" data-v="b">2b: 10% $5m, 90% $0</button></div>
+      <div class="label">The Allais problem (Angner, Example 7.20)</div>
+      <p><b>Choice 1</b></p>
+      <div class="choice"><button data-q="a1" data-v="a">A: $1m for certain</button><button data-q="a1" data-v="b">B: 10% chance of $5m, 89% chance of $1m, 1% chance of $0</button></div>
+      <p><b>Choice 2</b></p>
+      <div class="choice"><button data-q="a2" data-v="a">C: 11% chance of $1m, 89% chance of $0</button><button data-q="a2" data-v="b">D: 10% chance of $5m, 90% chance of $0</button></div>
       <p id="amsg"></p>
     </div>
     <div class="card teal">
-      <div class="label">Ellsberg (Angner Table 7.4)</div>
+      <div class="label">The Ellsberg problem (Angner, Example 7.25)</div>
       <p>An urn holds 30 red balls and 60 black or yellow in an unknown mix. You win $100 on the colour named.</p>
-      <div class="choice"><button data-q="e1" data-v="a">I: bet on red</button><button data-q="e1" data-v="b">II: bet on black</button></div>
-      <div class="choice"><button data-q="e2" data-v="a">III: red or yellow</button><button data-q="e2" data-v="b">IV: black or yellow</button></div>
+      <div class="choice"><button data-q="e1" data-v="a">Choice 1: bet on red</button><button data-q="e1" data-v="b">Choice 1: bet on black</button></div>
+      <div class="choice"><button data-q="e2" data-v="a">Choice 2: bet on red or yellow</button><button data-q="e2" data-v="b">Choice 2: bet on black or yellow</button></div>
       <p id="emsg"></p>
     </div>
   </div>
@@ -58,7 +58,7 @@
 </main>
 <script src="assets/lab.js"></script>
 <script>
-Lab.header(6, 'Prospect Theory Studio');
+Lab.header(6, 'Choice under Risk and Uncertainty: Prospect Theory');
 Lab.tabs();
 const $ = id => document.getElementById(id);
 const P = () => ({ a: +$('a').value, l: +$('l').value, g: +$('g').value });
@@ -88,8 +88,8 @@ const ans = {};
 document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
   ans[b.dataset.q] = b.dataset.v;
   document.querySelectorAll(`[data-q=${b.dataset.q}]`).forEach(x => x.classList.toggle('sel', x === b));
-  if (ans.a1 && ans.a2) $('amsg').innerHTML = ans.a1 === ans.a2 ? '<span class="ok">Consistent with expected utility.</span> Tickets 12 to 100 pay the same within each decision, so the sure-thing principle says your two choices should match, and they do.' : (ans.a1 === 'a' ? '<span class="bad">The classic Allais pattern (1a and 2b).</span> No expected utility function fits it: 1a needs 0.11u(1m) &gt; 0.10u(5m), 2b needs the reverse. The certainty effect at work.' : '<span class="bad">Inconsistent with expected utility</span> (the rarer 1b and 2a pattern).');
-  if (ans.e1 && ans.e2) $('emsg').innerHTML = (ans.e1 === 'a' && ans.e2 === 'b') ? '<span class="bad">The classic Ellsberg pattern (I and IV).</span> I implies P(red) &gt; P(black); IV implies P(black) &gt; P(red). You prefer known odds: ambiguity aversion.' : (ans.e1 === 'b' && ans.e2 === 'a') ? '<span class="bad">Ambiguity seeking (II and III).</span> Also inconsistent with any single probability belief.' : '<span class="ok">Consistent with a single probability belief.</span>';
+  if (ans.a1 && ans.a2) $('amsg').innerHTML = ans.a1 === ans.a2 ? '<span class="ok">Consistent with expected utility.</span> The two choices differ only in a common 89% outcome, so the independence axiom requires matching choices (A with C, or B with D), and yours match.' : (ans.a1 === 'a' ? '<span class="bad">The common Allais pattern (A and D).</span> No expected utility function is consistent with it: A requires 0.11u(1m) &gt; 0.10u(5m), and D requires the reverse. This is the certainty effect.' : '<span class="bad">Inconsistent with expected utility</span> (the less common pattern, B and C).');
+  if (ans.e1 && ans.e2) $('emsg').innerHTML = (ans.e1 === 'a' && ans.e2 === 'b') ? '<span class="bad">The common Ellsberg pattern (red, then black or yellow).</span> The first implies P(red) &gt; P(black); the second implies P(black) &gt; P(red). You prefer known probabilities: ambiguity aversion.' : (ans.e1 === 'b' && ans.e2 === 'a') ? '<span class="bad">Ambiguity seeking (black, then red or yellow).</span> Also inconsistent with any single probability belief.' : '<span class="ok">Consistent with a single probability belief.</span>';
 });
 </script>
 </body>
